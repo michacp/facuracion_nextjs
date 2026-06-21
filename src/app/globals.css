@@ -1,0 +1,230 @@
+@import "tailwindcss";
+
+/* ─── Modo oscuro por clase ───────────────────────────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Tokens base ─────────────────────────────────────────────────────────── */
+:root {
+  --brand-indigo:      #6610f2;
+  --brand-indigo-dark: #520dc2;
+  --brand-purple:      #6f42c1;
+  --brand-purple-dark: #59359a;
+
+  --su-bg:             #f0eefb;
+  --su-bg-deep:        #e8e5f7;
+
+  --su-text:           #6610f2;
+  --su-text-muted:     rgba(102, 16, 242, 0.45);
+  --su-text-subtle:    rgba(102, 16, 242, 0.30);
+
+  --su-border:         rgba(102, 16, 242, 0.08);
+  --su-border-strong:  rgba(102, 16, 242, 0.18);
+
+  /* Sombras extruidas */
+  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.08), -2px -2px 6px rgba(255,255,255,0.90);
+  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.10), -3px -3px 8px rgba(255,255,255,0.95);
+  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.10), -8px -8px 24px rgba(255,255,255,0.95);
+
+  /* Sombras con acento de marca */
+  --su-shadow-brand:    4px 4px 12px rgba(102,16,242,0.38), -2px -2px 8px rgba(255,255,255,0.55);
+  --su-shadow-brand-lg: 5px 5px 16px rgba(102,16,242,0.48), -3px -3px 10px rgba(255,255,255,0.65);
+
+  /* Sombras inset */
+  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.08), inset -2px -2px 6px rgba(255,255,255,0.90);
+  --su-shadow-inset-focus: inset 3px 3px 10px rgba(102,16,242,0.10), inset -2px -2px 6px rgba(255,255,255,0.85);
+  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.10), inset -1px -1px 4px rgba(255,255,255,0.80);
+
+  --background: var(--su-bg);
+  --foreground: #171717;
+}
+
+/* ─── Tokens dark ─────────────────────────────────────────────────────────── */
+.dark {
+  --su-bg:             #160d2e;
+  --su-bg-deep:        #110a24;
+
+  --su-text:           #d8b4fe;
+  --su-text-muted:     rgba(216, 180, 254, 0.50);
+  --su-text-subtle:    rgba(216, 180, 254, 0.30);
+
+  --su-border:         rgba(102, 16, 242, 0.15);
+  --su-border-strong:  rgba(102, 16, 242, 0.28);
+
+  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.45), -2px -2px 6px rgba(255,255,255,0.03);
+  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.50), -3px -3px 8px rgba(255,255,255,0.03);
+  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.60), -8px -8px 24px rgba(255,255,255,0.03);
+
+  --su-shadow-brand:    4px 4px 12px rgba(102,16,242,0.50), -2px -2px 8px rgba(255,255,255,0.04);
+  --su-shadow-brand-lg: 5px 5px 16px rgba(102,16,242,0.60), -3px -3px 10px rgba(255,255,255,0.04);
+
+  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.45), inset -2px -2px 6px rgba(255,255,255,0.03);
+  --su-shadow-inset-focus: inset 3px 3px 10px rgba(102,16,242,0.25), inset -2px -2px 6px rgba(255,255,255,0.03);
+  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.40), inset -1px -1px 4px rgba(255,255,255,0.02);
+
+  --background: var(--su-bg);
+  --foreground: #ededed;
+}
+
+/* ─── Tailwind v4 @theme ──────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-brand-indigo:      var(--brand-indigo);
+  --color-brand-indigo-dark: var(--brand-indigo-dark);
+  --color-brand-purple:      var(--brand-purple);
+  --color-brand-purple-dark: var(--brand-purple-dark);
+
+  --color-su-bg:             var(--su-bg);
+  --color-su-bg-deep:        var(--su-bg-deep);
+  --color-su-text:           var(--su-text);
+  --color-su-text-muted:     var(--su-text-muted);
+  --color-su-text-subtle:    var(--su-text-subtle);
+  --color-su-border:         var(--su-border);
+  --color-su-border-strong:  var(--su-border-strong);
+  --color-background:        var(--background);
+  --color-foreground:        var(--foreground);
+
+  --shadow-su-sm:            var(--su-shadow-sm);
+  --shadow-su-md:            var(--su-shadow-md);
+  --shadow-su-lg:            var(--su-shadow-lg);
+  --shadow-su-brand:         var(--su-shadow-brand);
+  --shadow-su-brand-lg:      var(--su-shadow-brand-lg);
+  --shadow-su-inset:         var(--su-shadow-inset);
+  --shadow-su-inset-focus:   var(--su-shadow-inset-focus);
+  --shadow-su-inset-press:   var(--su-shadow-inset-press);
+
+  --animate-float-in:  float-in 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+  --animate-fade-up:   fade-up 0.25s ease-out forwards;
+  --animate-fade-in:   fade-in 0.2s ease-out forwards;
+}
+
+/* ─── @keyframes ──────────────────────────────────────────────────────────── */
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLASES UTILITARIAS COMPARTIDAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Superficies extruidas ───────────────────────────────────────────────── */
+
+.su-surface {
+  background-color: var(--su-bg);
+  box-shadow: var(--su-shadow-sm);
+  border: 1px solid var(--su-border);
+}
+.su-surface-md {
+  background-color: var(--su-bg);
+  box-shadow: var(--su-shadow-md);
+  border: 1px solid var(--su-border);
+}
+.su-surface-lg {
+  background-color: var(--su-bg);
+  box-shadow: var(--su-shadow-lg);
+  border: 1px solid var(--su-border);
+}
+.su-inset {
+  background-color: var(--su-bg);
+  box-shadow: var(--su-shadow-inset);
+  border: 1px solid var(--su-border);
+}
+.su-brand {
+  background: linear-gradient(135deg, var(--brand-indigo), var(--brand-purple));
+  box-shadow: var(--su-shadow-brand);
+  color: white;
+}
+.su-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background-color: var(--su-bg);
+  box-shadow: var(--su-shadow-sm);
+  border: 1px solid var(--su-border);
+  color: var(--su-text-muted);
+  transition: box-shadow 0.15s ease, color 0.15s ease;
+}
+.su-icon-btn:hover {
+  box-shadow: var(--su-shadow-md);
+  color: var(--su-text);
+}
+.su-icon-btn:active {
+  box-shadow: var(--su-shadow-inset-press);
+}
+.su-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--su-border-strong), transparent);
+}
+.su-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.su-avatar-shine {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 0.25rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.30);
+  border-radius: 9999px;
+  pointer-events: none;
+}
+.su-dropdown {
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background-color: var(--su-bg);
+  border: 1px solid var(--su-border);
+  box-shadow: var(--su-shadow-lg);
+  animation: var(--animate-fade-up);
+}
+.su-field-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--su-text-subtle);
+  padding-left: 0.25rem;
+}
+
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+
+/* Tailwind v4 usa currentColor como border-color por defecto,
+   lo que hereda --foreground (#171717 claro / #ededed oscuro)
+   produciendo bordes negros/blancos. Lo sobreescribimos con
+   el token del sistema para que ambos temas sean consistentes. */
+*, *::before, *::after {
+  border-color: var(--su-border);
+}
+
+body {
+  background-color: var(--su-bg);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+  /* Ocultar scrollbar para Chrome, Safari y Opera */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  /* Ocultar scrollbar para IE, Edge y Firefox */
+  .scrollbar-none {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

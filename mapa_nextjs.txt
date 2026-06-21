@@ -1,0 +1,97 @@
+src/
+├── app/                                  # CAPA DE RUTAS (Next.js App Router - Solo UI y contenedores)
+│   ├── (auth)/                           # Grupo de rutas públicas (ignoradas en la URL)
+│   │   └── login/
+│   │       └── page.tsx                  # [← Tu código] Pantalla visual del Login (Server Component)
+│   ├── (dashboard)/                      # Grupo de rutas protegidas (multi-tenant)
+│   │   ├── layout.tsx                    # Layout principal con Sidebar, Navbar y contexto del Tenant
+│   │   ├── page.tsx                      # [← Tu código] Panel de control de pruebas / Dashboard principal
+│   │   │
+│   │   ├── owner/                        # Acceso exclusivo para ti (Dueño del SaaS/Superadmin)
+│   │   │   ├── layout.tsx                # Layout específico para administración global (opcional)
+│   │   │   ├── page.tsx                  # Dashboard global del sistema
+│   │   │   ├── usuarios/page.tsx         # Gestión de cuentas y suscripciones
+│   │   │   ├── configuracion/page.tsx    # Parámetros globales de la plataforma
+│   │   │   └── reportes/page.tsx         # Estadísticas de uso de todos los tenants
+│   │   │
+│   │   ├── sucursales/page.tsx
+│   │   ├── inventario/page.tsx
+│   │   ├── clientes/page.tsx
+│   │   └── ventas/                       # Rutas del módulo más complejo
+│   │       ├── page.tsx                  # Historial y estados de facturación
+│   │       └── nueva/page.tsx            # Pantalla principal del Punto de Venta (POS)
+│   │
+│   ├── layout.tsx                        # [← Tu código] Layout raíz (Contenedor global de la app)
+│   └── globals.css                       # [← Tu código] Estilos globales de Tailwind
+│
+├── components/                           # UI REUTILIZABLE GLOBAL (Cero lógica de negocio específica)
+│   ├── ui/                               # Componentes base, atómicos (ej. Shadcn)
+│   │   ├── button.tsx
+│   │   ├── table.tsx
+│   │   └── modal.tsx
+│   ├── common/                           # Componentes compuestos compartidos en toda la app
+│   │   ├── Navbar.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── DataTable.tsx
+│   │   ├── RoleGuard.tsx                 # Protege el renderizado de botones/secciones por rol
+│   │   ├── LoadingSpinner.tsx
+│   │   └── ThemeToggle.tsx               # [← Tu código] Botón flotante para cambiar de tema
+│   └── layout/                           # Contenedores estructurales (PageHeader, Section, etc.)
+│
+├── features/                             # CAPA DE NEGOCIO (Módulos que emulan Nest/Angular)
+│   ├── auth/                             # [← Tu código] TU MÓDULO DE AUTENTICACIÓN
+│   │   ├── api/
+│   │   │   └── auth.api.ts               # Peticiones HTTP directas a NestJS (Servicio)
+│   │   ├── components/
+│   │   │   ├── LoginForm.tsx             # Formulario visual de login (UI)
+│   │   │   └── LogoutButton.tsx          # Botón inteligente de cierre de sesión
+│   │   ├── hooks/
+│   │   │   └── useLogin.ts               # Cerebro y estado de la autenticación
+│   │   └── types.ts                      # Contratos de datos, DTOs e Interfaces
+│   ├── sucursales/
+│   ├── inventario/
+│   ├── clientes/
+│   └── ventas/                           # Aislamiento total del módulo pesado
+│       ├── api/ventas.api.ts             # Peticiones al backend específicas de ventas
+│       ├── components/                   
+│       │   ├── pos/                      # Subdivisión lógica del Punto de Venta
+│       │   │   ├── POSForm.tsx
+│       │   │   ├── CartTable.tsx
+│       │   │   ├── CustomerSearch.tsx
+│       │   │   └── PaymentSection.tsx
+│       │   ├── invoice/                  # Subdivisión lógica de Facturación SRI
+│       │   │   ├── InvoiceAccordion.tsx  
+│       │   │   └── RetryInvoiceBtn.tsx   
+│       │   └── shared/
+│       ├── hooks/                        
+│       │   ├── useCart.ts
+│       │   ├── usePOS.ts
+│       │   ├── useInvoiceActions.ts      
+│       │   └── useInvoices.ts
+│       ├── store/                        
+│       │   └── cartStore.ts              # Estado de Zustand exclusivo para las ventas
+│       ├── types.ts                      # Tipos específicos de la UI de ventas
+│       └── utils.ts
+│
+├── hooks/                                # Hooks genéricos y utilitarios globales
+│   ├── useAuth.ts
+│   ├── useTenant.ts                      # Extracción y manejo del ID de la sucursal actual
+│   ├── useDebounce.ts
+│   └── usePermissions.ts
+│
+├── lib/                                  # CONFIGURACIONES Y CLIENTES
+│   ├── axios.ts                          # [← Tu código] Instancia central e Interceptores
+│   ├── utils.ts                          # Formateadores globales (moneda, fechas, clsx)
+│   ├── constants.ts                      # Variables estáticas del sistema
+│   └── validators.ts                     # Esquemas Zod globales
+│
+├── types/                                # TIPOS GLOBALES (El espejo de tu Backend)
+│   ├── index.ts
+│   ├── api.ts                            # Interfaces de respuestas estándar del API
+│   └── models.ts                         # Interfaces exactas (Usuario, Factura, Producto)
+│
+├── stores/                               # ESTADOS GLOBALES LIGEROS
+│   └── authStore.ts                      # Manejo de sesión de usuario y tenant activo
+│
+├── middleware.ts                         # [← Tu código] Guardián de seguridad (Cookies)
+└── next.config.mjs
