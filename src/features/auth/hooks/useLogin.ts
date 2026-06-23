@@ -9,6 +9,7 @@ import { AxiosError } from "axios";
 export function useLogin() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [checking, setChecking] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
 
     // Estados del formulario
@@ -27,6 +28,8 @@ export function useLogin() {
         }
         if (Cookies.get("token")) {
             router.replace("/dashboard");
+        } else {
+            setChecking(false); // ← solo muestra el form si no hay token
         }
     }, []);
 
@@ -76,11 +79,12 @@ export function useLogin() {
         rememberMe,
         loading,
         showPassword,
-        error, // 👈 Lo exponemos para que el componente lo renderice
+        error, 
         setIdentifier,
         setPassword,
         setRememberMe,
         togglePasswordVisibility,
         handleSubmit,
+        checking, 
     };
 }

@@ -16,7 +16,7 @@ function DashboardLoading() {
     <div className="flex h-64 items-center justify-center gap-3">
       <div
         className="w-5 h-5 rounded-full border-2 animate-spin"
-        style={{ borderColor: "var(--brand-indigo)", borderTopColor: "transparent" }}
+        style={{ borderColor: "var(--brand-blue)", borderTopColor: "transparent" }}
       />
       <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
         Cargando panel…
@@ -78,7 +78,7 @@ export function Dashboard() {
             style={
               periodoTop === p
                 ? {
-                    background: "linear-gradient(135deg, var(--brand-indigo), var(--brand-purple))",
+                    background: "linear-gradient(135deg, var(--brand-blue), var(--brand-sky))",
                     boxShadow: "var(--su-shadow-brand)",
                     color: "white",
                   }

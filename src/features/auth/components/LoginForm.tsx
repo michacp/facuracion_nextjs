@@ -40,16 +40,35 @@ function SoftInput({ icon: Icon, type, placeholder, value, onChange, required, r
 
 export function LoginForm() {
   const {
-    identifier, password, rememberMe, loading, showPassword, error,
+    identifier, password, rememberMe, loading, showPassword, error, checking,
     setIdentifier, setPassword, setRememberMe, togglePasswordVisibility, handleSubmit,
   } = useLogin();
 
+  // ── Pantalla de verificación ──────────────────────────────────────────────
+  if (checking) {
+    return (
+      <div className="w-full max-w-sm rounded-3xl p-8 flex flex-col items-center gap-4 su-surface-lg">
+        <div className="su-avatar su-brand w-14 h-14 rounded-2xl">
+          <span className="text-white font-bold text-2xl">S</span>
+          <div className="su-avatar-shine" />
+        </div>
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-4 h-4 rounded-full border-2 animate-spin"
+            style={{ borderColor: "var(--brand-blue)", borderTopColor: "transparent" }}
+          />
+          <span className="text-sm font-medium" style={{ color: "var(--su-text-muted)" }}>
+            Comprobando sesión…
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-   // {/* su-surface-lg (globals) */}
     <div className="w-full max-w-sm rounded-3xl p-8 flex flex-col gap-6 su-surface-lg">
 
-      {/* Logomark ── su-avatar + su-avatar-shine + su-brand (globals).
-          Dimensiones y rounded exclusivos de este contexto. */}
+      {/* Logomark */}
       <div className="flex justify-center">
         <div className="su-avatar su-brand w-14 h-14 rounded-2xl">
           <span className="text-white font-bold text-2xl">S</span>
@@ -63,7 +82,7 @@ export function LoginForm() {
         <p className="text-sm text-su-text-muted">Ingresa tus credenciales para continuar</p>
       </div>
 
-      {/* Error — exclusivo del login */}
+      {/* Error */}
       {error && (
         <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl text-xs font-medium text-red-500 dark:text-red-400 su-inset border-red-200/60 dark:border-red-900/40">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-400" />
@@ -75,7 +94,6 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
         <div className="flex flex-col gap-2">
-          {/* su-field-label (globals) */}
           <label className="su-field-label">Usuario o email</label>
           <SoftInput
             icon={User} type="text" placeholder="tu@email.com"
@@ -84,7 +102,6 @@ export function LoginForm() {
         </div>
 
         <div className="flex flex-col gap-2">
-          {/* su-field-label (globals) */}
           <label className="su-field-label">Contraseña</label>
           <SoftInput
             icon={Lock}
@@ -102,16 +119,31 @@ export function LoginForm() {
           />
         </div>
 
-        {/* Checkbox */}
+        {/* Checkbox — arreglado para modo claro */}
         <label className="flex items-center gap-3 cursor-pointer select-none group mt-1">
           <div className="relative shrink-0">
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="sr-only peer" />
-            {/* su-inset + su-brand al activarse (globals) */}
-            <div className="
-              w-5 h-5 rounded-lg su-inset
-              peer-checked:su-brand peer-checked:border-transparent
-              transition-all duration-200 flex items-center justify-center
-            ">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div
+              className="w-5 h-5 rounded-lg transition-all duration-200 flex items-center justify-center"
+              style={
+                rememberMe
+                  ? {
+                      background: "linear-gradient(135deg, var(--brand-blue), var(--brand-sky))",
+                      boxShadow: "var(--su-shadow-brand)",
+                      border: "1px solid transparent",
+                    }
+                  : {
+                      background: "var(--su-bg)",
+                      boxShadow: "var(--su-shadow-inset)",
+                      border: "1px solid var(--su-border-strong)", // ← borde visible en claro
+                    }
+              }
+            >
               {rememberMe && (
                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -124,7 +156,7 @@ export function LoginForm() {
           </span>
         </label>
 
-        {/* Submit — su-brand (globals) + shine exclusivo del botón */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
@@ -137,7 +169,6 @@ export function LoginForm() {
             transition-all duration-200 tracking-wide
           "
         >
-          {/* Shine del botón — exclusivo de este submit */}
           <div className="absolute inset-x-4 top-1 h-px bg-white/30 rounded-full pointer-events-none" />
           <span className="relative">{loading ? "Ingresando..." : "Ingresar"}</span>
         </button>

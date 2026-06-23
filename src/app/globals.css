@@ -15,8 +15,8 @@
   --su-bg-deep:        #e0f2fe;
 
   --su-text:           #2563eb;
-  --su-text-muted:     rgba(37, 99, 235, 0.45);
-  --su-text-subtle:    rgba(37, 99, 235, 0.30);
+  --su-text-muted:     rgba(37, 99, 235, 0.75);
+  --su-text-subtle:    rgba(37, 99, 235, 0.80);
 
   --su-border:         rgba(37, 99, 235, 0.08);
   --su-border-strong:  rgba(37, 99, 235, 0.18);
@@ -45,8 +45,8 @@
   --su-bg-deep:        #020617;
 
   --su-text:           #38bdf8; /* Texto brillante en azul cielo */
-  --su-text-muted:     rgba(56, 189, 248, 0.50);
-  --su-text-subtle:    rgba(56, 189, 248, 0.30);
+  --su-text-muted:     rgba(56, 189, 248, 0.70);
+  --su-text-subtle:    rgba(56, 189, 248, 0.80);
 
   --su-border:         rgba(38, 166, 254, 0.15);
   --su-border-strong:  rgba(38, 166, 254, 0.28);
