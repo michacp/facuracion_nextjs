@@ -6,10 +6,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Boxes, Shield, X,
-  ChevronDown, Plus, List, Package, Users, Truck, // ◄ Agregado: Truck
+  ChevronDown, Plus, List, Package, Users, Truck,
   Receipt, PenLine
 } from "lucide-react";
 import { JwtPayload } from "@/features/auth/types/auth.types";
+// ── Importaciones de Firebase ───────────────────────────────────────────────
+import { db } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export interface SidebarProps {
   isOpen: boolean;
@@ -131,8 +134,8 @@ function SubLinkIndented({ href, icon: Icon, label, pathname, onClick }: {
 
 function NavAccordion({ icon: Icon, label, isCollapsed, children, flyoutChildren, matchPrefix, pathname }: {
   icon: React.ElementType; label: string; isCollapsed: boolean;
-  children: React.ReactNode;       // subitems con indentación (sidebar expandida)
-  flyoutChildren: React.ReactNode; // subitems sin indentación (flyout colapsado)
+  children: React.ReactNode;
+  flyoutChildren: React.ReactNode;
   matchPrefix: string; pathname: string;
 }) {
   const isAnyChildActive = pathname.startsWith(matchPrefix);
@@ -142,12 +145,9 @@ function NavAccordion({ icon: Icon, label, isCollapsed, children, flyoutChildren
     if (isAnyChildActive) setOpen(true);
   }, [isAnyChildActive]);
 
-  // ── MODO COLAPSADO: ícono + flyout al hover ───────────────────────────────
   if (isCollapsed) {
     return (
       <div className="group relative flex justify-center">
-
-        {/* Botón ícono */}
         <button className={[
           "flex items-center justify-center p-3 rounded-2xl transition-all duration-200",
           isAnyChildActive
@@ -160,11 +160,8 @@ function NavAccordion({ icon: Icon, label, isCollapsed, children, flyoutChildren
           ].join(" ")} />
         </button>
 
-        {/* Puente invisible — cubre el gap de ml-3 entre el botón y el flyout
-            sin él, el hover se pierde al cruzar ese espacio y el panel se cierra */}
         <div className="absolute left-full top-0 h-full w-3 z-50" />
 
-        {/* Flyout — visible al hover sobre el grupo */}
         <div className="
           absolute left-full top-0 ml-3 z-50
           w-48 rounded-2xl overflow-hidden
@@ -173,21 +170,17 @@ function NavAccordion({ icon: Icon, label, isCollapsed, children, flyoutChildren
           group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-x-0
           transition-all duration-150
         ">
-          {/* Título del grupo */}
           <div className="px-4 py-2.5 border-b border-su-border">
             <span className="su-field-label">{label}</span>
           </div>
-          {/* Subitems */}
           <div className="p-1.5 flex flex-col gap-0.5">
             {flyoutChildren}
           </div>
         </div>
-
       </div>
     );
   }
 
-  // ── MODO EXPANDIDO: trigger + hijos con animación ─────────────────────────
   return (
     <div>
       <button
@@ -224,10 +217,26 @@ function NavAccordion({ icon: Icon, label, isCollapsed, children, flyoutChildren
   );
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
+// ─── Sidebar Principal ────────────────────────────────────────────────────────
 
 export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
   const pathname = usePathname();
+  // Estado local para capturar la versión corta en el Sidebar
+  const [appVersion, setAppVersion] = useState<string>("");
+
+  // Escuchamos la versión para pintarla en el Header del Sidebar
+  useEffect(() => {
+    const docRef = doc(db, "configuracion", "version_app");
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.version) {
+          setAppVersion(data.version.substring(0, 7)); // Cortamos a 7 caracteres el commit hash
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <>
@@ -259,12 +268,22 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
               <span className="text-white font-bold text-sm">S</span>
               <div className="su-avatar-shine" />
             </div>
+            
             <div className={[
               "flex flex-col leading-none overflow-hidden transition-all duration-300",
               isCollapsed ? "w-0 opacity-0" : "opacity-100 flex-1",
             ].join(" ")}>
               <span className="font-bold text-su-text text-base whitespace-nowrap tracking-tight">Enterprise</span>
-              <span className="text-[10px] text-su-text-subtle uppercase tracking-[0.15em] whitespace-nowrap">Admin Suite</span>
+              
+              {/* Sección de texto + versión alineada */}
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-[10px] text-su-text-subtle uppercase tracking-[0.15em] whitespace-nowrap">Admin Suite</span>
+                {appVersion && (
+                  <span className="text-[9px] font-mono font-medium text-su-text-subtle/50 select-none low-opacity">
+                    v{appVersion}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -360,27 +379,21 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
 
           {!isCollapsed && <p className="su-field-label px-4 mb-2">Menú</p>}
 
-          {/* 1. Panel General */}
           <NavLink href="/dashboard" icon={LayoutDashboard} label="Panel General"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 2. Ventas */}
           <NavLink href="/ventas/lista" icon={ShoppingBag} label="Ventas"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 3. Facturas */}
           <NavLink href="/facturas" icon={Receipt} label="Facturas"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 4. Clientes */}
           <NavLink href="/clientes" icon={Users} label="Clientes"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 5. Proveedores ◄ Agregado: Botón nuevo */}
           <NavLink href="/proveedores" icon={Truck} label="Proveedores"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 6. Productos */}
           <NavAccordion
             icon={Boxes} label="Productos"
             isCollapsed={isCollapsed} matchPrefix="/productos" pathname={pathname}
@@ -395,7 +408,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
             <SubLinkIndented href="/productos/ingresoslista" icon={Package} label="Ingresos" pathname={pathname} onClick={onClose} />
           </NavAccordion>
 
-          {/* 7. Firma */}
           <NavLink href="/firma" icon={PenLine} label="Firma"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
