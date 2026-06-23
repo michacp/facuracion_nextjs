@@ -5,64 +5,65 @@
 
 /* ─── Tokens base ─────────────────────────────────────────────────────────── */
 :root {
-  --brand-indigo:      #6610f2;
-  --brand-indigo-dark: #520dc2;
-  --brand-purple:      #6f42c1;
-  --brand-purple-dark: #59359a;
+  /* Nuevos tonos de azul amigable */
+  --brand-blue:        #2563eb; /* Azul confiable y vivo */
+  --brand-blue-dark:   #1d4ed8; 
+  --brand-sky:         #0ea5e9; /* Azul cielo para degradados */
+  --brand-sky-dark:    #0369a1;
 
-  --su-bg:             #f0eefb;
-  --su-bg-deep:        #e8e5f7;
+  --su-bg:             #f0f7ff; /* Fondo claro con un toque azul frío */
+  --su-bg-deep:        #e0f2fe;
 
-  --su-text:           #6610f2;
-  --su-text-muted:     rgba(102, 16, 242, 0.45);
-  --su-text-subtle:    rgba(102, 16, 242, 0.30);
+  --su-text:           #2563eb;
+  --su-text-muted:     rgba(37, 99, 235, 0.45);
+  --su-text-subtle:    rgba(37, 99, 235, 0.30);
 
-  --su-border:         rgba(102, 16, 242, 0.08);
-  --su-border-strong:  rgba(102, 16, 242, 0.18);
+  --su-border:         rgba(37, 99, 235, 0.08);
+  --su-border-strong:  rgba(37, 99, 235, 0.18);
 
   /* Sombras extruidas */
-  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.08), -2px -2px 6px rgba(255,255,255,0.90);
-  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.10), -3px -3px 8px rgba(255,255,255,0.95);
-  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.10), -8px -8px 24px rgba(255,255,255,0.95);
+  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.06), -2px -2px 6px rgba(255,255,255,0.90);
+  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.08), -3px -3px 8px rgba(255,255,255,0.95);
+  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.08), -8px -8px 24px rgba(255,255,255,0.95);
 
-  /* Sombras con acento de marca */
-  --su-shadow-brand:    4px 4px 12px rgba(102,16,242,0.38), -2px -2px 8px rgba(255,255,255,0.55);
-  --su-shadow-brand-lg: 5px 5px 16px rgba(102,16,242,0.48), -3px -3px 10px rgba(255,255,255,0.65);
+  /* Sombras con acento de marca (Azul) */
+  --su-shadow-brand:    4px 4px 12px rgba(37,99,235,0.25), -2px -2px 8px rgba(255,255,255,0.55);
+  --su-shadow-brand-lg: 5px 5px 16px rgba(37,99,235,0.35), -3px -3px 10px rgba(255,255,255,0.65);
 
   /* Sombras inset */
-  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.08), inset -2px -2px 6px rgba(255,255,255,0.90);
-  --su-shadow-inset-focus: inset 3px 3px 10px rgba(102,16,242,0.10), inset -2px -2px 6px rgba(255,255,255,0.85);
-  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.10), inset -1px -1px 4px rgba(255,255,255,0.80);
+  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.06), inset -2px -2px 6px rgba(255,255,255,0.90);
+  --su-shadow-inset-focus: inset 3px 3px 10px rgba(37,99,235,0.08), inset -2px -2px 6px rgba(255,255,255,0.85);
+  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.08), inset -1px -1px 4px rgba(255,255,255,0.80);
 
   --background: var(--su-bg);
-  --foreground: #171717;
+  --foreground: #1e293b; /* Texto principal azul slate muy oscuro */
 }
 
 /* ─── Tokens dark ─────────────────────────────────────────────────────────── */
 .dark {
-  --su-bg:             #160d2e;
-  --su-bg-deep:        #110a24;
+  --su-bg:             #0f172a; /* Fondo oscuro azul pizarra */
+  --su-bg-deep:        #020617;
 
-  --su-text:           #d8b4fe;
-  --su-text-muted:     rgba(216, 180, 254, 0.50);
-  --su-text-subtle:    rgba(216, 180, 254, 0.30);
+  --su-text:           #38bdf8; /* Texto brillante en azul cielo */
+  --su-text-muted:     rgba(56, 189, 248, 0.50);
+  --su-text-subtle:    rgba(56, 189, 248, 0.30);
 
-  --su-border:         rgba(102, 16, 242, 0.15);
-  --su-border-strong:  rgba(102, 16, 242, 0.28);
+  --su-border:         rgba(38, 166, 254, 0.15);
+  --su-border-strong:  rgba(38, 166, 254, 0.28);
 
-  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.45), -2px -2px 6px rgba(255,255,255,0.03);
-  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.50), -3px -3px 8px rgba(255,255,255,0.03);
-  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.60), -8px -8px 24px rgba(255,255,255,0.03);
+  --su-shadow-sm:      3px 3px 8px rgba(0,0,0,0.45), -2px -2px 6px rgba(255,255,255,0.02);
+  --su-shadow-md:      4px 4px 12px rgba(0,0,0,0.50), -3px -3px 8px rgba(255,255,255,0.02);
+  --su-shadow-lg:      12px 12px 32px rgba(0,0,0,0.60), -8px -8px 24px rgba(255,255,255,0.02);
 
-  --su-shadow-brand:    4px 4px 12px rgba(102,16,242,0.50), -2px -2px 8px rgba(255,255,255,0.04);
-  --su-shadow-brand-lg: 5px 5px 16px rgba(102,16,242,0.60), -3px -3px 10px rgba(255,255,255,0.04);
+  --su-shadow-brand:    4px 4px 12px rgba(37,99,235,0.40), -2px -2px 8px rgba(255,255,255,0.03);
+  --su-shadow-brand-lg: 5px 5px 16px rgba(37,99,235,0.50), -3px -3px 10px rgba(255,255,255,0.03);
 
-  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.45), inset -2px -2px 6px rgba(255,255,255,0.03);
-  --su-shadow-inset-focus: inset 3px 3px 10px rgba(102,16,242,0.25), inset -2px -2px 6px rgba(255,255,255,0.03);
-  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.40), inset -1px -1px 4px rgba(255,255,255,0.02);
+  --su-shadow-inset:       inset 3px 3px 8px rgba(0,0,0,0.45), inset -2px -2px 6px rgba(255,255,255,0.02);
+  --su-shadow-inset-focus: inset 3px 3px 10px rgba(37,99,235,0.20), inset -2px -2px 6px rgba(255,255,255,0.02);
+  --su-shadow-inset-press: inset 2px 2px 6px rgba(0,0,0,0.40), inset -1px -1px 4px rgba(255,255,255,0.01);
 
   --background: var(--su-bg);
-  --foreground: #ededed;
+  --foreground: #f8fafc;
 }
 
 /* ─── Tailwind v4 @theme ──────────────────────────────────────────────────── */
@@ -70,10 +71,11 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-brand-indigo:      var(--brand-indigo);
-  --color-brand-indigo-dark: var(--brand-indigo-dark);
-  --color-brand-purple:      var(--brand-purple);
-  --color-brand-purple-dark: var(--brand-purple-dark);
+  /* Renombrados y actualizados a las nuevas variables de azul */
+  --color-brand-blue:       var(--brand-blue);
+  --color-brand-blue-dark:  var(--brand-blue-dark);
+  --color-brand-sky:        var(--brand-sky);
+  --color-brand-sky-dark:   var(--brand-sky-dark);
 
   --color-su-bg:             var(--su-bg);
   --color-su-bg-deep:        var(--su-bg-deep);
@@ -117,8 +119,6 @@
    CLASES UTILITARIAS COMPARTIDAS
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Superficies extruidas ───────────────────────────────────────────────── */
-
 .su-surface {
   background-color: var(--su-bg);
   box-shadow: var(--su-shadow-sm);
@@ -140,7 +140,8 @@
   border: 1px solid var(--su-border);
 }
 .su-brand {
-  background: linear-gradient(135deg, var(--brand-indigo), var(--brand-purple));
+  /* Degradado amigable de Azul a Azul Cielo */
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-sky));
   box-shadow: var(--su-shadow-brand);
   color: white;
 }
@@ -203,10 +204,6 @@
 
 /* ─── Base ────────────────────────────────────────────────────────────────── */
 
-/* Tailwind v4 usa currentColor como border-color por defecto,
-   lo que hereda --foreground (#171717 claro / #ededed oscuro)
-   produciendo bordes negros/blancos. Lo sobreescribimos con
-   el token del sistema para que ambos temas sean consistentes. */
 *, *::before, *::after {
   border-color: var(--su-border);
 }
@@ -218,13 +215,11 @@ body {
 }
 
 @layer utilities {
-  /* Ocultar scrollbar para Chrome, Safari y Opera */
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
-  /* Ocultar scrollbar para IE, Edge y Firefox */
   .scrollbar-none {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }

@@ -11,6 +11,7 @@
   "dependencies": {
     "@wojtekmaj/react-daterange-picker": "^7.0.0",
     "axios": "^1.16.1",
+    "firebase": "^12.15.0",
     "js-cookie": "^3.0.7",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.17.0",

@@ -20,7 +20,7 @@ export function Cell({ main, sub, align = "left", font = "normal" }: CellProps) 
     <div className={`flex flex-col gap-0.5 min-w-0 overflow-hidden ${alignCls}`}>
       {/* main — tipografía principal */}
       <div
-        className={`text-sm font-medium leading-snug truncate max-w-full ${fontCls}`}
+        className={`text-[11px] font-medium leading-snug truncate max-w-full ${fontCls}`}
         style={{ color: "var(--foreground)" }}
       >
         {main}
@@ -29,7 +29,7 @@ export function Cell({ main, sub, align = "left", font = "normal" }: CellProps) 
       {/* sub — tipografía secundaria, solo si existe */}
       {sub !== undefined && sub !== null && (
         <div
-          className="text-[11px] leading-snug truncate max-w-full"
+          className="text-[9px] leading-snug truncate max-w-full"
           style={{ color: "var(--su-text-muted)" }}
         >
           {sub}

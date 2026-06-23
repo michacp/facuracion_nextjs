@@ -6,7 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Boxes, Shield, X,
-  ChevronDown, Plus, List, PenLine, Receipt, Package, Users,
+  ChevronDown, Plus, List, Package, Users, Truck, // ◄ Agregado: Truck
+  Receipt, PenLine
 } from "lucide-react";
 import { JwtPayload } from "@/features/auth/types/auth.types";
 
@@ -284,11 +285,9 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
             onClick={onClose}
             className="mx-4 my-2.5 py-1.5 flex items-center gap-3 min-w-0 select-none rounded-xl hover:bg-su-bg-deep group/empresa transition-colors duration-200"
           >
-            {/* Avatar sutil y plano */}
             <div className="w-8 h-8 rounded-xl bg-su-bg-deep border border-su-border flex items-center justify-center text-[11px] font-bold text-su-text-muted shrink-0 shadow-sm group-hover/empresa:border-su-border-strong transition-colors">
               {user.empresaNombre.charAt(0).toUpperCase()}
             </div>
-            {/* Textos limpios */}
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-semibold text-su-text truncate leading-tight tracking-tight group-hover/empresa:text-su-brand-text transition-colors">
                 {user.empresaNombre}
@@ -310,7 +309,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
               {user.empresaNombre.charAt(0).toUpperCase()}
             </Link>
 
-            {/* Tooltip en modo colapsado al pasar el mouse por encima */}
             <span className="
               absolute left-full ml-4 px-3 py-1.5 rounded-xl text-xs font-semibold
               su-brand whitespace-nowrap pointer-events-none z-50
@@ -326,9 +324,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
 
         {user?.empresaNombre && <div className="mx-4 su-divider" />}
 
-        {/* ── BOTÓN ACCIÓN PRINCIPAL: NUEVA VENTA ──
-            Adaptado al tema de marca (su-brand: gradiente índigo/púrpura)
-            en lugar del verde emerald que rompía el sistema de diseño. */}
+        {/* ── BOTÓN ACCIÓN PRINCIPAL ── */}
         <div className={["px-3 py-2", isCollapsed ? "flex justify-center" : ""].join(" ")}>
           <Link
             href="/ventas/nueva"
@@ -344,7 +340,6 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
             <Plus className={isCollapsed ? "w-5 h-5" : "w-[18px] h-[18px]"} />
             {!isCollapsed && <span>Nueva Venta</span>}
 
-            {/* Tooltip en modo colapsado */}
             {isCollapsed && (
               <span className="
                 absolute left-full ml-4 px-3 py-1.5 rounded-xl text-xs font-semibold
@@ -360,17 +355,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
           </Link>
         </div>
 
-        {/* ── Navegación ──
-            Orden sugerido por frecuencia de uso / flujo natural del negocio:
-            1. Panel General  → vista general, primer punto de entrada
-            2. Ventas         → operación más frecuente del día a día (link directo:
-                                 "Nueva venta" ya vive en el botón fijo de arriba,
-                                 así que el acordeón ya no tenía sentido con un solo hijo)
-            3. Facturas       → paso natural posterior a una venta
-            4. Clientes       → se consulta más a menudo que se edita el catálogo
-            5. Productos      → único acordeón real, con 3 sub-acciones genuinas
-            6. Firma          → configuración / uso ocasional, al final
-        */}
+        {/* ── Navegación ── */}
         <nav className={["flex-1 px-3 py-4 flex flex-col gap-1", isCollapsed ? "overflow-visible" : "overflow-y-auto overflow-x-hidden scrollbar-none"].join(" ")}>
 
           {!isCollapsed && <p className="su-field-label px-4 mb-2">Menú</p>}
@@ -379,8 +364,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
           <NavLink href="/dashboard" icon={LayoutDashboard} label="Panel General"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 2. Ventas — ahora link directo a la lista, ya que "Nueva venta"
-                 vive siempre arriba en el botón de acción principal */}
+          {/* 2. Ventas */}
           <NavLink href="/ventas/lista" icon={ShoppingBag} label="Ventas"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
@@ -392,7 +376,11 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
           <NavLink href="/clientes" icon={Users} label="Clientes"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
-          {/* 5. Productos — único acordeón, con 3 sub-acciones genuinas */}
+          {/* 5. Proveedores ◄ Agregado: Botón nuevo */}
+          <NavLink href="/proveedores" icon={Truck} label="Proveedores"
+            isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
+
+          {/* 6. Productos */}
           <NavAccordion
             icon={Boxes} label="Productos"
             isCollapsed={isCollapsed} matchPrefix="/productos" pathname={pathname}
@@ -407,7 +395,7 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
             <SubLinkIndented href="/productos/ingresoslista" icon={Package} label="Ingresos" pathname={pathname} onClick={onClose} />
           </NavAccordion>
 
-          {/* 6. Firma */}
+          {/* 7. Firma */}
           <NavLink href="/firma" icon={PenLine} label="Firma"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 

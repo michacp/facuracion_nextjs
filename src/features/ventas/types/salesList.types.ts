@@ -1,4 +1,4 @@
-// src/features/ventas/components/SalesList/types.ts
+// src/features/ventas/types/salesList.types.ts
 
 export interface SaleItem {
     code: string;
@@ -8,6 +8,7 @@ export interface SaleItem {
 }
 
 export interface Sale {
+    sale_id: number;
     sale_number: string;
     customer: string;
     issue_date: string;
@@ -17,10 +18,17 @@ export interface Sale {
     items: SaleItem[];
 }
 
+export interface TipoComprobante {
+    id: number;
+    name: string;
+}
+
 export interface ListSalesParams {
     filters: {
         searchQuery: string;
-        forma_pago: string;
+        tipo_comprobante_id: number | null;
+        fechaDesde: string | null;
+        fechaHasta: string | null;
         pageIndex: number;
         pageSize: number;
     };
@@ -29,13 +37,7 @@ export interface ListSalesParams {
 export interface ListSalesResponse {
     sales: Sale[];
     total: number;
+    tiposComprobante: TipoComprobante[];
 }
-
-export const FORMA_PAGO_OPTIONS = [
-    { value: "", label: "Todas" },
-    { value: "SIN UTILIZACIÓN DEL SISTEMA FINANCIERO", label: "Sin uso financiero" },
-    { value: "EFECTIVO", label: "Efectivo" },
-    { value: "TARJETA", label: "Tarjetas" },
-] as const;
 
 export const PAGE_SIZE_OPTIONS = [30, 50, 100, 200];

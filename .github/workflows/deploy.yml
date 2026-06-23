@@ -18,14 +18,32 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      # ── 1. PASO DE BUILD CON TODAS LAS VARIABLES DE ENTORNO ────────────────
       - name: Build Next.js (Export)
         env:
-          NEXT_PUBLIC_API_URL: https://api.teamcellmania.com:3950
+          # Sacamos la URL de tu API desde los Secrets de GitHub
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          # Tus nuevas credenciales de Firebase para el Frontend
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         run: npm run build
 
+      # ── 2. DESPLIEGUE EN FIREBASE HOSTING ─────────────────────────────────
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FACTURACION_7BDE0 }}
           channelId: live
           projectId: facturacion-7bde0
+
+      # ── 3. ACTUALIZAR VERSIÓN EN FIRESTORE EN TIEMPO REAL ─────────────────
+      - name: Actualizar versión en Firestore automáticamente
+        uses: w9jds/firebase-action@v2.3.0
+        with:
+          args: firestore:documents:create --project facturacion-7bde0 configuracion/version_app '{"version":"${{ github.sha }}"}'
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FACTURACION_7BDE0 }}
