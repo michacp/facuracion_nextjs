@@ -21,9 +21,7 @@ jobs:
       # ── 1. PASO DE BUILD CON TODAS LAS VARIABLES DE ENTORNO ────────────────
       - name: Build Next.js (Export)
         env:
-          # Sacamos la URL de tu API desde los Secrets de GitHub
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-          # Tus nuevas credenciales de Firebase para el Frontend
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
@@ -40,10 +38,31 @@ jobs:
           channelId: live
           projectId: facturacion-7bde0
 
-      # ── 3. ACTUALIZAR VERSIÓN EN FIRESTORE EN TIEMPO REAL ─────────────────
+      # ── 3. ACTUALIZAR VERSIÓN EN FIRESTORE (NATIVO CON CURL) ──────────────
       - name: Actualizar versión en Firestore automáticamente
-        uses: w9jds/firebase-action@v2.3.0
-        with:
-          args: firestore:documents:create --project facturacion-7bde0 configuracion/version_app '{"version":"${{ github.sha }}"}'
         env:
-          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FACTURACION_7BDE0 }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FACTURACION_7BDE0 }}
+        run: |
+          # 1. Creamos un archivo temporal con la credencial de la cuenta de servicio
+          echo "$FIREBASE_SERVICE_ACCOUNT" > gcp-key.json
+          
+          # 2. Autenticamos y obtenemos un Access Token de Google oficial
+          # Instalamos una mini herramienta nativa para firmar tokens JWT de Google
+          sudo apt-get install -y jq
+          
+          # Inicializamos el SDK de Google Cloud que viene preinstalado en el Runner
+          gcloud auth activate-service-account --key-file=gcp-key.json
+          TOKEN=$(gcloud auth print-access-token)
+          
+          # 3. Guardamos el hash del commit actual de GitHub como versión
+          VERSION_APP="${{ github.sha }}"
+          echo "Actualizando versión en Firestore a: $VERSION_APP"
+          
+          # 4. Hacemos la mutación directa en Firestore usando la API REST corporativa de Google
+          curl -X PATCH "https://firestore.googleapis.com/v1/projects/facturacion-7bde0/databases/(default)/documents/configuracion/version_app?updateMask.fieldPaths=version" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"fields\": {\"version\": {\"stringValue\": \"$VERSION_APP\"}}}"
+            
+          # Limpieza por seguridad
+          rm gcp-key.json
