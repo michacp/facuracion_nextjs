@@ -16,7 +16,7 @@ jobs:
           node-version: '22.13'
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm i --legacy-peer-deps
 
       # ── 1. PASO DE BUILD CON TODAS LAS VARIABLES DE ENTORNO ────────────────
       - name: Build Next.js (Export)
