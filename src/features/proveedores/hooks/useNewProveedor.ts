@@ -1,10 +1,14 @@
-// src/features/productos/components/NewProveedorModal/useNewProveedor.ts
 "use client";
+// src/features/proveedores/hooks/useNewProveedor.ts
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { proveedorApi } from "../api/proveedor.api";
-import type { NewProveedorForm, NewProveedorResult, ProveedorNewData } from "../types/newProveedorModal.types";
+import { proveedorListApi } from "../api/proveedor-list.api";
+import type {
+    NewProveedorForm,
+    NewProveedorResult,
+    ProveedorNewData,
+} from "../types/newProveedor.types";
 
 const EMPTY: NewProveedorForm = {
     identificacion: "",
@@ -17,7 +21,6 @@ const EMPTY: NewProveedorForm = {
     email: "",
 };
 
-// Validación simple — equivale a Validators de Angular
 export interface FormErrors {
     identificacion?: string;
     tipoIdentificacion?: string;
@@ -53,12 +56,11 @@ export function useNewProveedor(onClose: (result: NewProveedorResult | null) => 
         setForm((prev) => ({ ...prev, ...partial }));
     }
 
-    // Carga inicial
     useEffect(() => {
         (async () => {
             setLoadingData(true);
             try {
-                const data = await proveedorApi.getNewData();
+                const data = await proveedorListApi.getNewData();
                 setNewData(data);
                 // Preseleccionar Ecuador
                 const ecuador = data.paises.find((p) => p.name.toUpperCase().includes("ECUADOR"));
@@ -77,14 +79,13 @@ export function useNewProveedor(onClose: (result: NewProveedorResult | null) => 
         setTouched(true);
         if (!isValid) return;
 
-        // Limpiar campos vacíos opcionales
         const payload = Object.fromEntries(
             Object.entries(form).filter(([_, v]) => v !== "" && v !== null)
         );
 
         setLoading(true);
         try {
-            const result = await proveedorApi.save(payload);
+            const result = await proveedorListApi.save(payload);
             onClose(result);
         } catch (err) {
             console.error("Error guardando proveedor:", err);

@@ -9,8 +9,23 @@ import {
     ProveedorNewData,
     ProveedorUpdatePayload,
 } from "../types/proveedor-list.types";
+import { NewProveedorResult } from "../types/newProveedor.types";
 
 export const proveedorListApi = {
+
+    /** Guarda un nuevo proveedor */
+    save: async (payload: any): Promise<NewProveedorResult> => {
+        const { data } = await api.post<NewProveedorResult>("/proveedores/save", payload);
+        toast.success("Proveedor guardado exitosamente");
+        return data;
+    },
+
+    /** Busca proveedores (con búsqueda opcional por texto) */
+    find: async (params: { search?: string }): Promise<NewProveedorResult[]> => {
+        const { data } = await api.post<NewProveedorResult[]>("/proveedores/find", params);
+        return data;
+    },
+
     list: async (params: ListProveedoresParams): Promise<ListProveedoresResponse> => {
         const { data } = await api.post<ListProveedoresResponse>("/proveedores/list", params);
         return data;

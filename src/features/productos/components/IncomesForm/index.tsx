@@ -5,7 +5,7 @@ import { useState } from "react";
 import { GenericSelector } from "@/components/common/GenericSelector";
 import { useIncomesForm } from "../../hooks/useIncomesForm";
 import { fmtCurrency } from "../../utils/incomesForm.utils";
-import { NewProveedorModal } from "./NewProveedorModal";
+import { NewProveedorModal } from "../../../proveedores/components/NewProveedorModal";
 import type { DetalleRow } from "../../types/incomesForm.types";
 
 // ── Primitivas de campo ───────────────────────────────────────────────────────

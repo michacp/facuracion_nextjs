@@ -9,6 +9,7 @@ import { useProveedoresList } from "../../hooks/useProveedoresList";
 import { proveedorListApi } from "../../api/proveedor-list.api";
 import { ProveedorListItem } from "../../types/proveedor-list.types";
 import { ProveedorModal } from "../ProveedorModal";
+import { NewProveedorModal } from "../NewProveedorModal";
 
 // ── Columnas ──────────────────────────────────────────────────────────────────
 // razón social (1fr) | identificación (160px) | país (100px) | contacto (1fr) | compras (80px) | acciones (72px)
@@ -117,6 +118,7 @@ export function ProveedoresList() {
         handleSearchChange, handlePageChange, refetch,
     } = useProveedoresList();
 
+    const [newModalOpen,      setNewModalOpen]      = useState(false);
     const [viewingId,         setViewingId]         = useState<number | null>(null);
     const [deletingProveedor, setDeletingProveedor] = useState<ProveedorListItem | null>(null);
     const [deleting,          setDeleting]          = useState(false);
@@ -166,9 +168,7 @@ export function ProveedoresList() {
                     <span className="su-field-label pl-1 invisible">x</span>
                     <button
                         type="button"
-                        onClick={() => {
-                            // TODO: abrir modal de nuevo proveedor
-                        }}
+                        onClick={() => setNewModalOpen(true)}
                         className="su-brand flex items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs font-semibold"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
@@ -206,6 +206,15 @@ export function ProveedoresList() {
             </Table>
 
             {/* ── Modales ───────────────────────────────────────────── */}
+            {newModalOpen && (
+                <NewProveedorModal
+                    onClose={(result) => {
+                        setNewModalOpen(false);
+                        if (result) refetch();
+                    }}
+                />
+            )}
+
             {viewingId !== null && (
                 <ProveedorModal
                     proveedorId={viewingId}
