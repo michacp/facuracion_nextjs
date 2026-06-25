@@ -1,13 +1,19 @@
-// src/features/productos/components/ProductFormPage.tsx
 "use client";
 
 import { GenericChipsSelector } from "../../../../components/common/GenericChipsSelector";
 import { GenericSelector } from "../../../../components/common/GenericSelector";
 import { useProductForm } from "../../hooks/useProductForm";
+import type { SaveItemResponseDto } from "../../types/saveItemResponse.types";
 import { ProductoList } from "../../types/product.types";
 
+// ── Props ─────────────────────────────────────────────────────────────────────
+
+interface ProductFormPageProps {
+  onSuccess?: (result: SaveItemResponseDto) => void;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Subcomponentes inline reutilizables (equivalen a mat-form-field)
+// Subcomponentes
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -52,9 +58,7 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Card de último producto (equivale a mat-card en el panel derecho)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Card últimos productos ────────────────────────────────────────────────────
 
 function ProductoCard({ producto }: { producto: ProductoList }) {
   return (
@@ -65,14 +69,12 @@ function ProductoCard({ producto }: { producto: ProductoList }) {
       <p className="text-[11px]" style={{ color: "var(--su-text-muted)" }}>
         Código: {producto.codigo}
       </p>
-
       <div className="su-divider my-0.5" />
-
       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-        <InfoRow label="Marca" value={producto.marcas} />
-        <InfoRow label="Modelo" value={producto.modelos} />
-        <InfoRow label="Precio" value={`$${producto.precio}`} />
-        <InfoRow label="Stock" value={String(producto.stock)} />
+        <InfoRow label="Marca"    value={producto.marcas} />
+        <InfoRow label="Modelo"   value={producto.modelos} />
+        <InfoRow label="Precio"   value={`$${producto.precio}`} />
+        <InfoRow label="Stock"    value={String(producto.stock)} />
         <div className="col-span-2">
           <InfoRow label="Impuesto" value={producto.impuesto_nombre} />
         </div>
@@ -96,7 +98,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // Componente principal
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function ProductFormPage() {
+export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
   const {
     marcas, impuestos, tipoItems, modelos, porcentajes,
     ultimosProductos,
@@ -104,23 +106,32 @@ export function ProductFormPage() {
     selectedImpuestoId,
     buscarModelos,
     onImpuestoChange,
-    onSubmit,
+    onSubmit: _onSubmit,
     loadingInit,
     submitting,
   } = useProductForm();
 
-  // Validación simple para deshabilitar el botón (equivale a productoForm.invalid)
   const formInvalid =
     !form.tipo_item ||
     !form.nombre.trim() ||
     !form.id_tarifa_impuesto ||
     form.modelos_ids.length === 0;
 
+  // Captura el resultado y dispara onSuccess si hay callback
+  async function handleSubmit() {
+    const result = await _onSubmit();
+    if (result && onSuccess) {
+      onSuccess(result);
+    }
+  }
+
   if (loadingInit) {
     return (
       <div className="flex h-64 items-center justify-center gap-3">
-        <div className="w-5 h-5 rounded-full border-2 animate-spin"
-          style={{ borderColor: "var(--brand-indigo)", borderTopColor: "transparent" }} />
+        <div
+          className="w-5 h-5 rounded-full border-2 animate-spin"
+          style={{ borderColor: "var(--brand-blue)", borderTopColor: "transparent" }}
+        />
         <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
           Cargando formulario…
         </span>
@@ -131,7 +142,6 @@ export function ProductFormPage() {
   return (
     <div className="flex flex-col gap-6 px-4 py-6 max-w-6xl mx-auto">
 
-      {/* Título */}
       <h2 className="text-xl font-bold text-center" style={{ color: "var(--su-text)" }}>
         Nuevo Producto
       </h2>
@@ -176,28 +186,25 @@ export function ProductFormPage() {
               />
             </Field>
 
-<GenericSelector
-  label="Marca"
-  placeholder="Buscar Marca"
-  options={marcas}                          // Brand[] { id, name }
-  onSelect={(brand) => buscarModelos(brand?.id ?? 0)}
-/>
+            <GenericSelector
+              label="Marca"
+              placeholder="Buscar Marca"
+              options={marcas}
+              onSelect={(brand) => buscarModelos(brand?.id ?? 0)}
+            />
           </div>
 
           {/* Fila 3 — Modelos (chips) */}
           <div>
-             
- 
-              <GenericChipsSelector
-                availableItems={modelos}
-                label="Modelos"
-                onSelectionChange={(ids) => patchForm({ modelos_ids: ids })}
-              />
- 
+            <GenericChipsSelector
+              availableItems={modelos}
+              label="Modelos"
+              onSelectionChange={(ids) => patchForm({ modelos_ids: ids })}
+            />
           </div>
 
-          {/* Fila 4 — Precio + Impuesto + Valor impuesto + Stock */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {/* Fila 4 — Precio + Impuesto + Valor impuesto */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <Field label="Precio Unitario">
               <Input
                 type="number"
@@ -211,7 +218,9 @@ export function ProductFormPage() {
             <Field label="Impuestos">
               <Select
                 value={selectedImpuestoId ?? ""}
-                onChange={(e) => onImpuestoChange(e.target.value ? Number(e.target.value) : null)}
+                onChange={(e) =>
+                  onImpuestoChange(e.target.value ? Number(e.target.value) : null)
+                }
               >
                 <option value="">Seleccione…</option>
                 {impuestos.map((imp) => (
@@ -223,7 +232,9 @@ export function ProductFormPage() {
             <Field label="Valor de Impuesto">
               <Select
                 value={form.id_tarifa_impuesto || ""}
-                onChange={(e) => patchForm({ id_tarifa_impuesto: Number(e.target.value) })}
+                onChange={(e) =>
+                  patchForm({ id_tarifa_impuesto: Number(e.target.value) })
+                }
                 disabled={porcentajes.length === 0}
               >
                 <option value="">Seleccione…</option>
@@ -232,14 +243,12 @@ export function ProductFormPage() {
                 ))}
               </Select>
             </Field>
-
- 
           </div>
 
           {/* Botón guardar */}
           <div className="flex justify-center pt-2">
             <button
-              onClick={onSubmit}
+              onClick={handleSubmit}
               disabled={formInvalid || submitting}
               className="su-brand rounded-2xl px-10 py-3 text-sm font-bold
                          flex items-center gap-2 transition-all duration-150
@@ -247,8 +256,10 @@ export function ProductFormPage() {
                          disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting && (
-                <span className="w-4 h-4 rounded-full border-2 border-white/30
-                                 border-t-white animate-spin inline-block" />
+                <span
+                  className="w-4 h-4 rounded-full border-2 border-white/30
+                             border-t-white animate-spin inline-block"
+                />
               )}
               Guardar Producto
             </button>

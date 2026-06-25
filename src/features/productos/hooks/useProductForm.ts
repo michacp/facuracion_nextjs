@@ -8,6 +8,7 @@ import {
     Brand, InitialData, Model, Percentaje,
     ProductoList, SaveProductoDto, Tax, TypeItem,
 } from "../types/product.types";
+import { SaveItemResponseDto } from "../types/saveItemResponse.types";
 
 // ── Valores iniciales del form ────────────────────────────────────────────────
 
@@ -135,10 +136,8 @@ export function useProductForm() {
         else { setPorcentajes([]); patchForm({ id_tarifa_impuesto: 0 }); }
     }
 
-    // ── Submit (onSubmit) ──────────────────────────────────────────────────────
-
-    async function onSubmit() {
-        // Validación básica (equivale a productoForm.invalid)
+    // ── Submit (onSubmit) ────────────────────────────────────────────────────── 
+    async function onSubmit(): Promise<SaveItemResponseDto | null> {
         if (
             !form.tipo_item ||
             !form.nombre.trim() ||
@@ -146,17 +145,19 @@ export function useProductForm() {
             form.modelos_ids.length === 0
         ) {
             toast.error("Completa todos los campos requeridos");
-            return;
+            return null;
         }
 
         setSubmitting(true);
         try {
-            await productApi.save(form);
+            const result: SaveItemResponseDto = await productApi.save(form);
             await Promise.all([loadInitialData(), loadLastProducts()]);
             resetForm();
+            return result;
         } catch (err) {
             console.error("Error saving product:", err);
             toast.error("Error al guardar el producto");
+            return null;
         } finally {
             setSubmitting(false);
         }

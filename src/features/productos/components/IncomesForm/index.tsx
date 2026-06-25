@@ -1,4 +1,3 @@
-// src/features/productos/components/IncomesForm/index.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,7 +5,9 @@ import { GenericSelector } from "@/components/common/GenericSelector";
 import { useIncomesForm } from "../../hooks/useIncomesForm";
 import { fmtCurrency } from "../../utils/incomesForm.utils";
 import { NewProveedorModal } from "../../../proveedores/components/NewProveedorModal";
+import { NewProductoModal } from "../NewProductoModal";
 import type { DetalleRow } from "../../types/incomesForm.types";
+import type { SaveItemResponseDto } from "../../types/saveItemResponse.types";
 
 // ── Helper: selecciona todo al hacer focus ────────────────────────────────────
 
@@ -82,7 +83,7 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
                  transition-colors duration-200 focus:outline-none"
       style={{
         background: checked
-          ? "linear-gradient(135deg, var(--brand-indigo), var(--brand-purple))"
+          ? "linear-gradient(135deg, var(--brand-blue), var(--brand-sky))"
           : "var(--su-bg-deep)",
         boxShadow: checked ? "var(--su-shadow-brand)" : "var(--su-shadow-inset)",
         border: "1px solid var(--su-border)",
@@ -125,7 +126,7 @@ function TableHeader() {
   );
 }
 
-// ── Input de tabla (inline, sin componente Input) ─────────────────────────────
+// ── Input de tabla ────────────────────────────────────────────────────────────
 
 function TableInput(props: React.InputHTMLAttributes<HTMLInputElement> & { extraClass?: string }) {
   const { extraClass, ...rest } = props;
@@ -276,7 +277,7 @@ function AddButton({ onClick, title }: { onClick: () => void; title: string }) {
       className="shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center
                  transition-all duration-150 hover:scale-105 active:scale-95"
       style={{
-        background: "linear-gradient(135deg, var(--brand-indigo), var(--brand-purple))",
+        background: "linear-gradient(135deg, var(--brand-blue), var(--brand-sky))",
         boxShadow: "var(--su-shadow-brand)",
         color: "#fff",
       }}
@@ -291,8 +292,8 @@ function AddButton({ onClick, title }: { onClick: () => void; title: string }) {
 // ── Componente principal ──────────────────────────────────────────────────────
 
 export function IncomesForm() {
-  // ── Modal state ──────────────────────────────────────────────────────────
   const [proveedorModalOpen, setProveedorModalOpen] = useState(false);
+  const [productoModalOpen, setProductoModalOpen] = useState(false);
 
   const {
     newData,
@@ -314,6 +315,16 @@ export function IncomesForm() {
     onSubmit,
   } = useIncomesForm();
 
+  // ── Cuando se crea un producto desde el modal ─────────────────────────────
+  function onProductoCreado(result: SaveItemResponseDto) {
+    if (result.es_servicio) return; // servicios no van a la tabla de ingreso
+    agregarProducto({
+      id: result.id,
+      name: result.name,
+      precio_actual: result.precio_actual,
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6 px-4 py-6 max-w-[1400px] mx-auto">
 
@@ -325,7 +336,7 @@ export function IncomesForm() {
         <div className="flex h-64 items-center justify-center gap-3">
           <div
             className="w-5 h-5 rounded-full border-2 animate-spin"
-            style={{ borderColor: "var(--brand-indigo)", borderTopColor: "transparent" }}
+            style={{ borderColor: "var(--brand-blue)", borderTopColor: "transparent" }}
           />
           <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
             Cargando datos…
@@ -344,22 +355,15 @@ export function IncomesForm() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
-              {/* ── Proveedor + botón "+" ── */}
+              {/* Proveedor + botón "+" */}
               <div className="lg:col-span-2">
                 <div className="flex items-end gap-2 mt-1.5">
                   <div className="flex-1 min-w-0">
-                    {/*
-                      GenericSelector internamente renderiza un <input> de búsqueda.
-                      Pásale onInputFocus (o el prop que exponga tu componente) para
-                      propagar selectOnFocus. Si GenericSelector no tiene ese prop,
-                      agrega `onFocus={selectOnFocus}` dentro de su implementación
-                      en el <input> de búsqueda.
-                    */}
                     <GenericSelector
                       label="Proveedor"
                       placeholder="Buscar por nombre o RUC…"
                       options={proveedores}
-                      onSearch={buscarProveedores} 
+                      onSearch={buscarProveedores}
                       value={proveedores.find((p) => p.id === form.proveedor_id) ?? null}
                       onSelect={(item) =>
                         item ? onProveedorSeleccionado(item) : onProveedorBorrado()
@@ -380,9 +384,7 @@ export function IncomesForm() {
                 >
                   <option value="">Seleccione…</option>
                   {newData.tiposDocumento.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
+                    <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </Select>
               </Field>
@@ -415,9 +417,7 @@ export function IncomesForm() {
                 >
                   <option value="">Seleccione…</option>
                   {newData.estadosPago.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name}
-                    </option>
+                    <option key={e.id} value={e.id}>{e.name}</option>
                   ))}
                 </Select>
               </Field>
@@ -434,19 +434,25 @@ export function IncomesForm() {
               Añadir ítems
             </p>
 
+            {/* Buscador + botón nuevo producto */}
             <div className="max-w-md">
-              <GenericSelector
-                label="Buscar Producto"
-                placeholder="Código, nombre, marca o modelo…"
-                options={productosDB}
-                onSearch={buscarProductos} 
-                onSelect={(item) => {
-                  if (item) {
-                    const prod = productosDB.find((p) => p.id === item.id);
-                    if (prod) agregarProducto(prod);
-                  }
-                }}
-              />
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <GenericSelector
+                    label="Buscar Producto"
+                    placeholder="Código, nombre, marca o modelo…"
+                    options={productosDB}
+                    onSearch={buscarProductos}
+                    onSelect={(item) => {
+                      if (item) {
+                        const prod = productosDB.find((p) => p.id === item.id);
+                        if (prod) agregarProducto(prod);
+                      }
+                    }}
+                  />
+                </div>
+                <AddButton onClick={() => setProductoModalOpen(true)} title="Nuevo producto" />
+              </div>
             </div>
 
             {form.detalles.length > 0 ? (
@@ -520,10 +526,7 @@ export function IncomesForm() {
                 <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
                   Subtotal ítems:
                 </span>
-                <span
-                  className="text-sm font-bold tabular-nums"
-                  style={{ color: "var(--foreground)" }}
-                >
+                <span className="text-sm font-bold tabular-nums" style={{ color: "var(--foreground)" }}>
                   {fmtCurrency(form.compra_subtotal)}
                 </span>
               </div>
@@ -542,9 +545,7 @@ export function IncomesForm() {
                       min={0}
                       step={0.01}
                       value={form.compra_descuento_global}
-                      onChange={(e) =>
-                        patch({ compra_descuento_global: Number(e.target.value) })
-                      }
+                      onChange={(e) => patch({ compra_descuento_global: Number(e.target.value) })}
                       className="su-inset rounded-2xl pl-6 pr-3 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                     />
                   </div>
@@ -610,7 +611,7 @@ export function IncomesForm() {
                 </span>
                 <span
                   className="text-lg font-bold tabular-nums"
-                  style={{ color: "var(--brand-indigo)" }}
+                  style={{ color: "var(--brand-blue)" }}
                 >
                   {fmtCurrency(form.compra_total_pagar)}
                 </span>
@@ -629,7 +630,7 @@ export function IncomesForm() {
                   <>
                     <span
                       className="w-4 h-4 rounded-full border-2 border-white/30
-                                     border-t-white animate-spin"
+                                 border-t-white animate-spin"
                     />
                     Procesando…
                   </>
@@ -659,6 +660,16 @@ export function IncomesForm() {
           onClose={(result) => {
             if (result) onProveedorCreado(result);
             setProveedorModalOpen(false);
+          }}
+        />
+      )}
+
+      {/* ── Modal: Nuevo Producto ── */}
+      {productoModalOpen && (
+        <NewProductoModal
+          onClose={(result) => {
+            if (result) onProductoCreado(result);
+            setProductoModalOpen(false);
           }}
         />
       )}

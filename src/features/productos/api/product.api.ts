@@ -11,6 +11,7 @@ import {
     SaveProductoDto,
 } from "../types/product.types";
 import { ListProductosParams, ListProductosResponse } from "../types/product-list.types";
+import { SaveItemResponseDto } from "../types/saveItemResponse.types";
 
 export const productApi = {
     /** Datos iniciales: marcas, impuestos, tipos de ítem */
@@ -38,9 +39,9 @@ export const productApi = {
     },
 
     /** Guarda un nuevo producto */
-    save: async (dto: SaveProductoDto): Promise<void> => {
-        await api.post("/items/save", dto);
-        toast.success("Producto guardado correctamente");
+    save: async (dto: SaveProductoDto): Promise<SaveItemResponseDto> => {
+        const { data } = await api.post<SaveItemResponseDto>("/items/save", dto);
+        return data;
     },
     fetchProducts: async (params: ListProductosParams): Promise<ListProductosResponse> => {
         const { data } = await api.post<ListProductosResponse>("/items/list", params);
