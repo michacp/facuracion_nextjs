@@ -16,8 +16,8 @@ function fmtDate(iso: string) {
 }
 function getEstadoStyle(estado: string) {
   const map: Record<string, { background: string; color: string }> = {
-    PAGADO:    { background: "#bbf7d0", color: "#14532d" },
-    PARCIAL:   { background: "#fed7aa", color: "#7c2d12" },
+    PAGADO: { background: "#bbf7d0", color: "#14532d" },
+    PARCIAL: { background: "#fed7aa", color: "#7c2d12" },
     PENDIENTE: { background: "#fef08a", color: "#713f12" },
   };
   return map[estado] ?? { background: "var(--su-bg-deep)", color: "var(--su-text-muted)" };
@@ -64,19 +64,19 @@ function InlineEditText({ value, onChange, onSave, onCancel, saving, type = "tex
   type?: string;
 }) {
   return (
-    <div className="flex items-center gap-1 mt-1">
+    <div className="flex items-center gap-1 mt-1 w-full min-w-0">
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") onSave(); if (e.key === "Escape") onCancel(); }}
-        className="su-inset rounded-xl px-3 py-1.5 text-sm outline-none flex-1"
+        className="su-inset rounded-xl px-3 py-1.5 text-sm outline-none min-w-0 flex-1"
         style={{ color: "var(--foreground)" }}
         autoFocus
       />
       <button type="button" onClick={onSave} disabled={saving}
-        className="su-icon-btn w-7 h-7 rounded-lg flex items-center justify-center"
-        style={{ color: "var(--brand-indigo)" }}>
+        className="su-icon-btn w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+        style={{ color: "var(--brand-blue)" }}>
         {saving ? <Spinner /> : (
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -84,7 +84,7 @@ function InlineEditText({ value, onChange, onSave, onCancel, saving, type = "tex
         )}
       </button>
       <button type="button" onClick={onCancel}
-        className="su-icon-btn w-7 h-7 rounded-lg flex items-center justify-center">
+        className="su-icon-btn w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
@@ -95,12 +95,17 @@ function InlineEditText({ value, onChange, onSave, onCancel, saving, type = "tex
 
 function EditPencil({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick}
-      className="su-icon-btn w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity ml-1 shrink-0"
-      style={{ color: "var(--su-text-muted)" }}>
-      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round"
-          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
+    <button
+      type="button"
+      onClick={onClick}
+      className="su-icon-btn ml-1 shrink-0 w-8 h-8 rounded-xl"
+      style={{ color: "var(--su-text-muted)" }}
+    >
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15.232 5.232l3.536 3.536" />
+        <path d="M9 11l-5 5v3h3l5-5" />
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L8 18H5v-3L16.5 3.5z" />
       </svg>
     </button>
   );
@@ -132,9 +137,9 @@ function DetalleRow({ d, removing, onRemove }: {
       <div>
         {d.numero_lote
           ? <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: "var(--su-bg-deep)", color: "var(--su-text-muted)" }}>
-              {d.numero_lote}
-            </span>
+            style={{ background: "var(--su-bg-deep)", color: "var(--su-text-muted)" }}>
+            {d.numero_lote}
+          </span>
           : <span style={{ color: "var(--su-text-subtle)" }}>—</span>
         }
       </div>
@@ -188,7 +193,7 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
   } = useIncomeDetail(compraId, onClose);
 
   const isEditing = (f: EditableField) => editingField === f;
-  const isSaving  = (f: EditableField) => savingField === f;
+  const isSaving = (f: EditableField) => savingField === f;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -242,18 +247,28 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                     <span className="su-field-label">Proveedor</span>
                     <div className="flex items-center gap-1">
                       {isSaving("proveedor_id" as EditableField) && <Spinner />}
-                      <button type="button" onClick={toggleEditProveedor}
-                        className="su-icon-btn w-7 h-7 rounded-lg flex items-center justify-center"
-                        title={editandoProveedor ? "Cancelar" : "Cambiar proveedor"}>
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
-                          stroke="currentColor" strokeWidth={2}>
-                          {editandoProveedor
-                            ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            : <path strokeLinecap="round" strokeLinejoin="round"
-                                d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 16H9v-3z" />
-                          }
-                        </svg>
-                      </button>
+                      {/* Card: Proveedor — botón editar */}
+<button
+  type="button"
+  onClick={toggleEditProveedor}
+  className="su-icon-btn w-8 h-8 rounded-xl"
+  style={{ color: "var(--su-text-muted)" }}
+  title={editandoProveedor ? "Cancelar" : "Cambiar proveedor"}
+>
+  {editandoProveedor ? (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  ) : (
+    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15.232 5.232l3.536 3.536" />
+      <path d="M9 11l-5 5v3h3l5-5" />
+      <path d="M16.5 3.5a2.121 2.121 0 013 3L8 18H5v-3L16.5 3.5z" />
+    </svg>
+  )}
+</button>
                     </div>
                   </div>
 
@@ -281,38 +296,38 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                   <span className="su-field-label">Documento</span>
 
                   {/* N° documento */}
-                  <div className="group flex items-center">
+                  <div className="group flex items-center min-w-0 w-full">
                     {isEditing("numero_documento") ? (
                       <InlineEditText value={editValue} onChange={setEditValue}
                         onSave={() => saveField("numero_documento")}
                         onCancel={cancelEdit} saving={isSaving("numero_documento")} />
                     ) : (
-                      <>
-                        <p className="text-sm font-semibold font-mono" style={{ color: "var(--foreground)" }}>
-                          {compra.numero_documento}
-                        </p>
-                        <EditPencil onClick={() => startEdit("numero_documento", compra.numero_documento)} />
-                      </>
+    <>
+      <p className="text-sm font-semibold font-mono truncate" style={{ color: "var(--foreground)" }}>
+        {compra.numero_documento}
+      </p>
+      <EditPencil onClick={() => startEdit("numero_documento", compra.numero_documento)} />
+    </>
                     )}
                   </div>
 
                   {/* Tipo documento */}
                   <div className="group flex items-center gap-1">
                     {isEditing("tipo_doc_id") ? (
-                      <div className="flex items-center gap-1 w-full">
-                        <select value={editValue}
-                          onChange={(e) => saveSelect("tipo_doc_id", Number(e.target.value))}
-                          className="su-inset rounded-xl px-2 py-1 text-xs outline-none flex-1"
-                          style={{ color: "var(--foreground)", background: "var(--su-bg)" }}>
-                          {tiposDocumento.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                        </select>
-                        <button type="button" onClick={cancelEdit}
-                          className="su-icon-btn w-6 h-6 rounded-lg flex items-center justify-center">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
+    <div className="flex items-center gap-1 w-full min-w-0">
+      <select value={editValue}
+        onChange={(e) => saveSelect("tipo_doc_id", Number(e.target.value))}
+        className="su-inset rounded-xl px-2 py-1 text-xs outline-none flex-1 min-w-0"
+        style={{ color: "var(--foreground)", background: "var(--su-bg)" }}>
+        {tiposDocumento.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+      </select>
+      <button type="button" onClick={cancelEdit}
+        className="su-icon-btn w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
                     ) : (
                       <>
                         <p className="text-xs" style={{ color: "var(--su-text-muted)" }}>{compra.tipo_documento}</p>
@@ -322,7 +337,7 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                   </div>
 
                   {/* Fecha */}
-                  <div className="group flex items-center gap-1">
+                  <div className="group flex items-center gap-1 min-w-0 w-full">
                     {isEditing("fecha_emision") ? (
                       <InlineEditText value={editValue} onChange={setEditValue} type="date"
                         onSave={() => saveField("fecha_emision")}
@@ -346,22 +361,22 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                 <div className="su-surface rounded-2xl p-4 flex flex-col gap-3">
                   <span className="su-field-label">Estado de Pago</span>
 
-                  <div className="group flex items-center gap-2">
-                    {isEditing("estado_pago_id") ? (
-                      <div className="flex items-center gap-1 w-full">
-                        <select value={editValue}
-                          onChange={(e) => saveSelect("estado_pago_id", Number(e.target.value))}
-                          className="su-inset rounded-xl px-2 py-1 text-xs outline-none flex-1"
-                          style={{ color: "var(--foreground)", background: "var(--su-bg)" }}>
-                          {estadosPago.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
-                        </select>
-                        <button type="button" onClick={cancelEdit}
-                          className="su-icon-btn w-6 h-6 rounded-lg flex items-center justify-center">
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
+                <div className="group flex items-center gap-2 min-w-0 w-full">
+  {isEditing("estado_pago_id") ? (
+    <div className="flex items-center gap-1 w-full min-w-0">
+      <select value={editValue}
+        onChange={(e) => saveSelect("estado_pago_id", Number(e.target.value))}
+        className="su-inset rounded-xl px-2 py-1 text-xs outline-none flex-1 min-w-0"
+        style={{ color: "var(--foreground)", background: "var(--su-bg)" }}>
+        {estadosPago.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+      </select>
+      <button type="button" onClick={cancelEdit}
+        className="su-icon-btn w-6 h-6 rounded-lg flex items-center justify-center shrink-0">
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
                     ) : (
                       <>
                         <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full"
@@ -405,17 +420,17 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                   </div>
 
                   {/* Desc. global editable */}
-                  <div className="flex justify-between text-xs items-center group">
+                  <div className="flex justify-between text-xs items-center gap-2 group min-w-0">
                     <span style={{ color: "var(--su-text-muted)" }}>Desc. Global:</span>
                     {isEditing("descuento_global") ? (
                       <InlineEditText value={editValue} onChange={setEditValue} type="number"
                         onSave={() => saveField("descuento_global")}
                         onCancel={cancelEdit} saving={isSaving("descuento_global")} />
                     ) : (
-                      <div className="flex items-center gap-1">
-                        <span className="tabular-nums">{fmtCurrency(compra.descuento_global)}</span>
-                        <EditPencil onClick={() => startEdit("descuento_global", String(compra.descuento_global))} />
-                      </div>
+    <div className="flex items-center gap-1 min-w-0">
+      <span className="tabular-nums truncate">{fmtCurrency(compra.descuento_global)}</span>
+      <EditPencil onClick={() => startEdit("descuento_global", String(compra.descuento_global))} />
+    </div>
                     )}
                   </div>
 
@@ -425,17 +440,17 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
                   </div>
 
                   {/* Gastos envío editable */}
-                  <div className="flex justify-between text-xs items-center group">
+                  <div className="flex justify-between text-xs items-center gap-2 group min-w-0">
                     <span style={{ color: "var(--su-text-muted)" }}>Envío:</span>
                     {isEditing("gastos_envio") ? (
                       <InlineEditText value={editValue} onChange={setEditValue} type="number"
                         onSave={() => saveField("gastos_envio")}
                         onCancel={cancelEdit} saving={isSaving("gastos_envio")} />
                     ) : (
-                      <div className="flex items-center gap-1">
-                        <span className="tabular-nums">{fmtCurrency(compra.gastos_envio)}</span>
-                        <EditPencil onClick={() => startEdit("gastos_envio", String(compra.gastos_envio))} />
-                      </div>
+    <div className="flex items-center gap-1 min-w-0">
+      <span className="tabular-nums truncate">{fmtCurrency(compra.gastos_envio)}</span>
+      <EditPencil onClick={() => startEdit("gastos_envio", String(compra.gastos_envio))} />
+    </div>
                     )}
                   </div>
 
@@ -543,10 +558,10 @@ export function IncomeDetailModal({ compraId, onClose }: Props) {
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                           {[
-                            { label: "Cantidad",     field: "cantidad",               type: "number", min: 1 },
-                            { label: "Costo Unit.",  field: "costo_unitario",         type: "number", min: 0 },
-                            { label: "Descuento",    field: "descuento_linea",        type: "number", min: 0 },
-                            { label: "PVP Sugerido", field: "precio_venta_sugerido",  type: "number", min: 0 },
+                            { label: "Cantidad", field: "cantidad", type: "number", min: 1 },
+                            { label: "Costo Unit.", field: "costo_unitario", type: "number", min: 0 },
+                            { label: "Descuento", field: "descuento_linea", type: "number", min: 0 },
+                            { label: "PVP Sugerido", field: "precio_venta_sugerido", type: "number", min: 0 },
                           ].map(({ label, field, type, min }) => (
                             <div key={field} className="flex flex-col gap-1.5">
                               <label className="su-field-label pl-1">{label}</label>
