@@ -7,7 +7,8 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Boxes, Shield, X,
   ChevronDown, Plus, List, Package, Users, Truck,
-  Receipt, PenLine
+  Receipt, PenLine,
+  BarChart2
 } from "lucide-react";
 import { JwtPayload } from "@/features/auth/types/auth.types";
 // ── Importaciones de Firebase ───────────────────────────────────────────────
@@ -410,7 +411,19 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
 
           <NavLink href="/firma" icon={PenLine} label="Firma"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
-
+<NavAccordion
+  icon={BarChart2} label="Reportes"
+  isCollapsed={isCollapsed} matchPrefix="/reportes" pathname={pathname}
+  flyoutChildren={<>
+    <SubLink href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
+    <SubLink href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
+    <SubLink href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
+  </>}
+>
+  <SubLinkIndented href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
+  <SubLinkIndented href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
+  <SubLinkIndented href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
+</NavAccordion>
           {/* Owner */}
           {user?.rol === "OWNER" && (
             <>

@@ -1,6 +1,7 @@
-// src/features/reportes/types.ts
+// src/features/reportes/types/reportes.types.ts
 
-// ── /reportes/kpis ──────────────────────────────────────────────────────────
+// ── Dashboard / KPIs ──────────────────────────────────────────────────────────
+
 export interface KpiPeriodo {
     ventas_total: number;
     ventas_count: number;
@@ -15,7 +16,6 @@ export interface KpisResponse {
     anio: KpiPeriodo;
 }
 
-// ── /reportes/ventas-semanas ────────────────────────────────────────────────
 export interface VentaSemana {
     label: string;
     fecha_inicio: string;
@@ -30,7 +30,6 @@ export interface VentasSemanaResponse {
     semanas: VentaSemana[];
 }
 
-// ── /reportes/stock-bajo ────────────────────────────────────────────────────
 export interface ProductoStockBajo {
     item_id: number;
     codigo: string;
@@ -45,7 +44,6 @@ export interface StockBajoResponse {
     items: ProductoStockBajo[];
 }
 
-// ── /reportes/alertas ───────────────────────────────────────────────────────
 export interface FirmaPorVencer {
     firmas_id: number;
     alias: string;
@@ -75,7 +73,6 @@ export interface AlertasResponse {
     total_alertas: number;
 }
 
-// ── /reportes/top-productos ─────────────────────────────────────────────────
 export interface TopProducto {
     item_id: number;
     codigo: string;
@@ -90,7 +87,6 @@ export interface TopProductosResponse {
     periodo: string;
 }
 
-// ── /reportes/top-clientes ──────────────────────────────────────────────────
 export interface TopCliente {
     cliente_id: number;
     razon_social: string;
@@ -104,7 +100,6 @@ export interface TopClientesResponse {
     periodo: string;
 }
 
-// ── Tipo agregado para el hook useDashboard ─────────────────────────────────
 export interface DashboardData {
     kpis: KpisResponse;
     ventasSemanas: VentasSemanaResponse;
@@ -112,4 +107,130 @@ export interface DashboardData {
     alertas: AlertasResponse;
     topProductos: TopProductosResponse;
     topClientes: TopClientesResponse;
+}
+
+// ── IVA Mensual ───────────────────────────────────────────────────────────────
+
+export interface IvaResumenItem {
+    tarifa_porcentaje: number;
+    base_imponible: number;
+    iva: number;
+    cantidad_registros: number;
+}
+
+export interface IvaDetalleVenta {
+    venta_id: number;
+    numero_venta: string;
+    fecha_emision: string;
+    cliente: string;
+    identificacion: string;
+    item_nombre: string;
+    cantidad: number;
+    precio_unitario: number;
+    descuento: number;
+    base_imponible: number;
+    tarifa_porcentaje: number;
+    iva_calculado: number;
+}
+
+export interface IvaDetalleCompra {
+    compra_id: number;
+    numero_documento: string;
+    fecha_emision: string;
+    proveedor: string;
+    proveedor_identificacion: string;
+    base_imponible: number;
+    tarifa_porcentaje: number;
+    iva: number;
+}
+
+/** Respuesta del resumen — sin detalle (los detalles vienen paginados) */
+export interface IvaMensualResponse {
+    mes: number;
+    anio: number;
+    resumen_ventas: IvaResumenItem[];
+    resumen_compras: IvaResumenItem[];
+    iva_total_ventas: number;
+    iva_total_compras: number;
+    iva_a_pagar: number;
+}
+
+export interface IvaMensualParams {
+    mes: number;
+    anio: number;
+}
+
+export interface ListIvaDetalleParams {
+    mes: number;
+    anio: number;
+    search?: string;
+    page?: number;
+    limit?: number;
+}
+
+export interface ListIvaVentasResponse {
+    total: number;
+    detalle: IvaDetalleVenta[];
+}
+
+export interface ListIvaComprasResponse {
+    total: number;
+    detalle: IvaDetalleCompra[];
+}
+
+// ── Inventario Valorado ───────────────────────────────────────────────────────
+
+export interface LoteItem {
+    lote_id: number;
+    numero_lote: string;
+    cantidad: number;
+    costo_origen: number;
+    valor_lote: number;
+}
+
+export interface InventarioItem {
+    item_id: number;
+    codigo: string;
+    nombre: string;
+    stock_total: number;
+    costo_promedio: number;
+    valor_total: number;
+    lotes: LoteItem[];
+}
+
+export interface InventarioValoradoResponse {
+    fecha_corte: string;
+    total_items: number;
+    valor_total_inventario: number;
+    items: InventarioItem[];
+}
+
+// ── Cuentas por Pagar ─────────────────────────────────────────────────────────
+
+export type EstadoPago = "PENDIENTE" | "PARCIAL" | "PAGADO";
+
+export interface CompraProveedor {
+    compra_id: number;
+    numero_documento: string;
+    fecha_emision: string;
+    total_pagar: number;
+    total_pagado: number;
+    saldo_pendiente: number;
+    estado_pago: EstadoPago;
+    dias_antiguedad: number;
+}
+
+export interface ProveedorCuentas {
+    proveedor_id: number;
+    razon_social: string;
+    identificacion: string;
+    saldo_total: number;
+    compras: CompraProveedor[];
+}
+
+export interface CuentasPorPagarResponse {
+    fecha_corte: string;
+    total_por_pagar: number;
+    total_proveedores: number;
+    proveedores: ProveedorCuentas[];
 }

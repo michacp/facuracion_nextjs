@@ -8,6 +8,11 @@ import { fmtCurrency } from "../../utils/incomesForm.utils";
 import { NewProveedorModal } from "../../../proveedores/components/NewProveedorModal";
 import type { DetalleRow } from "../../types/incomesForm.types";
 
+// ── Helper: selecciona todo al hacer focus ────────────────────────────────────
+
+const selectOnFocus = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  e.target.select();
+
 // ── Primitivas de campo ───────────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -27,6 +32,10 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
+      onFocus={(e) => {
+        selectOnFocus(e);
+        props.onFocus?.(e);
+      }}
       className="su-inset rounded-2xl px-4 py-2.5 text-sm outline-none w-full
                  placeholder:text-[var(--su-text-subtle)] disabled:opacity-40"
       style={{ color: "var(--foreground)" }}
@@ -48,6 +57,10 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       {...props}
+      onFocus={(e) => {
+        selectOnFocus(e);
+        props.onFocus?.(e);
+      }}
       rows={8}
       className="su-inset rounded-2xl px-4 py-2.5 text-sm outline-none w-full resize-none
                  placeholder:text-[var(--su-text-subtle)]"
@@ -112,6 +125,23 @@ function TableHeader() {
   );
 }
 
+// ── Input de tabla (inline, sin componente Input) ─────────────────────────────
+
+function TableInput(props: React.InputHTMLAttributes<HTMLInputElement> & { extraClass?: string }) {
+  const { extraClass, ...rest } = props;
+  return (
+    <input
+      {...rest}
+      onFocus={(e) => {
+        selectOnFocus(e);
+        rest.onFocus?.(e);
+      }}
+      className={`su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums ${extraClass ?? ""}`}
+      style={{ color: "var(--foreground)" }}
+    />
+  );
+}
+
 // ── Fila de detalle ───────────────────────────────────────────────────────────
 
 function DetalleRowUI({
@@ -132,54 +162,80 @@ function DetalleRowUI({
         {row.nombre_visual}
       </p>
 
-      <input
-        type="number" min={1} value={row.cantidad}
+      {/* Cantidad */}
+      <TableInput
+        type="number"
+        min={1}
+        value={row.cantidad}
+        extraClass="text-right"
         onChange={(e) => onUpdate("cantidad", Number(e.target.value))}
-        className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full text-right tabular-nums"
-        style={{ color: "var(--foreground)" }}
       />
 
+      {/* Costo unitario */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
-          style={{ color: "var(--su-text-muted)" }}>$</span>
-        <input
-          type="number" min={0} step={0.01} value={row.costo_unitario}
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+          style={{ color: "var(--su-text-muted)" }}
+        >
+          $
+        </span>
+        <TableInput
+          type="number"
+          min={0}
+          step={0.01}
+          value={row.costo_unitario}
+          extraClass="pl-6 pr-2 text-right"
           onChange={(e) => onUpdate("costo_unitario", Number(e.target.value))}
-          className="su-inset rounded-xl pl-6 pr-2 py-1.5 text-sm outline-none w-full text-right tabular-nums"
-          style={{ color: "var(--foreground)" }}
         />
       </div>
 
+      {/* Descuento línea */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
-          style={{ color: "var(--su-text-muted)" }}>$</span>
-        <input
-          type="number" min={0} step={0.01} value={row.descuento_linea}
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+          style={{ color: "var(--su-text-muted)" }}
+        >
+          $
+        </span>
+        <TableInput
+          type="number"
+          min={0}
+          step={0.01}
+          value={row.descuento_linea}
+          extraClass="pl-6 pr-2 text-right"
           onChange={(e) => onUpdate("descuento_linea", Number(e.target.value))}
-          className="su-inset rounded-xl pl-6 pr-2 py-1.5 text-sm outline-none w-full text-right tabular-nums"
-          style={{ color: "var(--foreground)" }}
         />
       </div>
 
+      {/* Subtotal (solo lectura) */}
       <p className="text-sm font-bold text-right tabular-nums" style={{ color: "var(--su-text)" }}>
         {fmtCurrency(row.subtotal_linea)}
       </p>
 
+      {/* PVP sugerido */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
-          style={{ color: "var(--su-text-muted)" }}>$</span>
-        <input
-          type="number" min={0} step={0.01} value={row.precio_venta_sugerido}
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+          style={{ color: "var(--su-text-muted)" }}
+        >
+          $
+        </span>
+        <TableInput
+          type="number"
+          min={0}
+          step={0.01}
+          value={row.precio_venta_sugerido}
+          extraClass="pl-6 pr-2 text-right"
           onChange={(e) => onUpdate("precio_venta_sugerido", Number(e.target.value))}
-          className="su-inset rounded-xl pl-6 pr-2 py-1.5 text-sm outline-none w-full text-right tabular-nums"
-          style={{ color: "var(--foreground)" }}
         />
       </div>
 
+      {/* Toggle aplicar PVP */}
       <div className="flex justify-center">
         <Toggle checked={row.aplicar_pvp} onChange={(v) => onUpdate("aplicar_pvp", v)} />
       </div>
 
+      {/* Eliminar */}
       <div className="flex justify-center">
         <button
           type="button"
@@ -188,10 +244,19 @@ function DetalleRowUI({
           aria-label="Eliminar fila"
           title="Eliminar"
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" strokeWidth={2} style={{ color: "#dc2626" }}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            style={{ color: "#dc2626" }}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
         </button>
       </div>
@@ -216,8 +281,7 @@ function AddButton({ onClick, title }: { onClick: () => void; title: string }) {
         color: "#fff",
       }}
     >
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
-        stroke="currentColor" strokeWidth={2.5}>
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
       </svg>
     </button>
@@ -231,12 +295,22 @@ export function IncomesForm() {
   const [proveedorModalOpen, setProveedorModalOpen] = useState(false);
 
   const {
-    newData, proveedores, productosDB,
-    form, patch,
-    loadingInitial, submitting, formInvalid,
-    buscarProveedores, onProveedorSeleccionado, onProveedorBorrado, onProveedorCreado,
-    buscarProductos, agregarProducto,
-    actualizarDetalle, removerDetalle,
+    newData,
+    proveedores,
+    productosDB,
+    form,
+    patch,
+    loadingInitial,
+    submitting,
+    formInvalid,
+    buscarProveedores,
+    onProveedorSeleccionado,
+    onProveedorBorrado,
+    onProveedorCreado,
+    buscarProductos,
+    agregarProducto,
+    actualizarDetalle,
+    removerDetalle,
     onSubmit,
   } = useIncomesForm();
 
@@ -249,8 +323,10 @@ export function IncomesForm() {
 
       {loadingInitial ? (
         <div className="flex h-64 items-center justify-center gap-3">
-          <div className="w-5 h-5 rounded-full border-2 animate-spin"
-            style={{ borderColor: "var(--brand-indigo)", borderTopColor: "transparent" }} />
+          <div
+            className="w-5 h-5 rounded-full border-2 animate-spin"
+            style={{ borderColor: "var(--brand-indigo)", borderTopColor: "transparent" }}
+          />
           <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
             Cargando datos…
           </span>
@@ -259,32 +335,38 @@ export function IncomesForm() {
         <>
           {/* ── Sección: Proveedor + Documento ── */}
           <div className="su-surface-md rounded-3xl p-5 flex flex-col gap-5">
-            <p className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "var(--su-text-muted)" }}>
+            <p
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: "var(--su-text-muted)" }}
+            >
               Datos del documento
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
 
               {/* ── Proveedor + botón "+" ── */}
-              <div className="lg:col-span-2"> 
+              <div className="lg:col-span-2">
                 <div className="flex items-end gap-2 mt-1.5">
                   <div className="flex-1 min-w-0">
+                    {/*
+                      GenericSelector internamente renderiza un <input> de búsqueda.
+                      Pásale onInputFocus (o el prop que exponga tu componente) para
+                      propagar selectOnFocus. Si GenericSelector no tiene ese prop,
+                      agrega `onFocus={selectOnFocus}` dentro de su implementación
+                      en el <input> de búsqueda.
+                    */}
                     <GenericSelector
-                    label="Proveedor"
+                      label="Proveedor"
                       placeholder="Buscar por nombre o RUC…"
                       options={proveedores}
-                      onSearch={buscarProveedores}
-                      value={proveedores.find((p) => p.id === form.proveedor_id) ?? null} 
+                      onSearch={buscarProveedores} 
+                      value={proveedores.find((p) => p.id === form.proveedor_id) ?? null}
                       onSelect={(item) =>
                         item ? onProveedorSeleccionado(item) : onProveedorBorrado()
                       }
                     />
                   </div>
-                  <AddButton
-                    onClick={() => setProveedorModalOpen(true)}
-                    title="Nuevo proveedor"
-                  />
+                  <AddButton onClick={() => setProveedorModalOpen(true)} title="Nuevo proveedor" />
                 </div>
               </div>
 
@@ -292,11 +374,15 @@ export function IncomesForm() {
               <Field label="Tipo Documento">
                 <Select
                   value={form.tipo_doc_id ?? ""}
-                  onChange={(e) => patch({ tipo_doc_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={(e) =>
+                    patch({ tipo_doc_id: e.target.value ? Number(e.target.value) : null })
+                  }
                 >
                   <option value="">Seleccione…</option>
                   {newData.tiposDocumento.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
                   ))}
                 </Select>
               </Field>
@@ -323,11 +409,15 @@ export function IncomesForm() {
               <Field label="Estado de Pago">
                 <Select
                   value={form.estado_pago_id ?? ""}
-                  onChange={(e) => patch({ estado_pago_id: e.target.value ? Number(e.target.value) : null })}
+                  onChange={(e) =>
+                    patch({ estado_pago_id: e.target.value ? Number(e.target.value) : null })
+                  }
                 >
                   <option value="">Seleccione…</option>
                   {newData.estadosPago.map((e) => (
-                    <option key={e.id} value={e.id}>{e.name}</option>
+                    <option key={e.id} value={e.id}>
+                      {e.name}
+                    </option>
                   ))}
                 </Select>
               </Field>
@@ -337,8 +427,10 @@ export function IncomesForm() {
 
           {/* ── Sección: Añadir ítems ── */}
           <div className="su-surface-md rounded-3xl p-5 flex flex-col gap-4">
-            <p className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: "var(--su-text-muted)" }}>
+            <p
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: "var(--su-text-muted)" }}
+            >
               Añadir ítems
             </p>
 
@@ -347,7 +439,7 @@ export function IncomesForm() {
                 label="Buscar Producto"
                 placeholder="Código, nombre, marca o modelo…"
                 options={productosDB}
-                onSearch={buscarProductos}
+                onSearch={buscarProductos} 
                 onSelect={(item) => {
                   if (item) {
                     const prod = productosDB.find((p) => p.id === item.id);
@@ -372,13 +464,23 @@ export function IncomesForm() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-36 gap-2 rounded-2xl"
-                style={{ background: "var(--su-bg-deep)" }}>
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor" strokeWidth={1}
-                  style={{ color: "var(--su-text-subtle)" }}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
+              <div
+                className="flex flex-col items-center justify-center h-36 gap-2 rounded-2xl"
+                style={{ background: "var(--su-bg-deep)" }}
+              >
+                <svg
+                  className="w-10 h-10"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1}
+                  style={{ color: "var(--su-text-subtle)" }}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"
+                  />
                 </svg>
                 <p className="text-sm" style={{ color: "var(--su-text-muted)" }}>
                   No hay productos agregados
@@ -407,14 +509,21 @@ export function IncomesForm() {
             </div>
 
             <div className="su-surface-md rounded-3xl p-5 flex flex-col gap-3">
-              <p className="text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--su-text-muted)" }}>
+              <p
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: "var(--su-text-muted)" }}
+              >
                 Totales
               </p>
 
               <div className="flex justify-between items-center">
-                <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>Subtotal ítems:</span>
-                <span className="text-sm font-bold tabular-nums" style={{ color: "var(--foreground)" }}>
+                <span className="text-sm" style={{ color: "var(--su-text-muted)" }}>
+                  Subtotal ítems:
+                </span>
+                <span
+                  className="text-sm font-bold tabular-nums"
+                  style={{ color: "var(--foreground)" }}
+                >
                   {fmtCurrency(form.compra_subtotal)}
                 </span>
               </div>
@@ -422,12 +531,20 @@ export function IncomesForm() {
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Desc. Global">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
-                      style={{ color: "var(--su-text-muted)" }}>$</span>
+                    <span
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+                      style={{ color: "var(--su-text-muted)" }}
+                    >
+                      $
+                    </span>
                     <Input
-                      type="number" min={0} step={0.01}
+                      type="number"
+                      min={0}
+                      step={0.01}
                       value={form.compra_descuento_global}
-                      onChange={(e) => patch({ compra_descuento_global: Number(e.target.value) })}
+                      onChange={(e) =>
+                        patch({ compra_descuento_global: Number(e.target.value) })
+                      }
                       className="su-inset rounded-2xl pl-6 pr-3 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                     />
                   </div>
@@ -435,19 +552,29 @@ export function IncomesForm() {
                 <Field label="% IVA">
                   <div className="relative">
                     <Input
-                      type="number" min={0} max={100}
+                      type="number"
+                      min={0}
+                      max={100}
                       value={form.compra_porcentaje_impuesto}
-                      onChange={(e) => patch({ compra_porcentaje_impuesto: Number(e.target.value) })}
+                      onChange={(e) =>
+                        patch({ compra_porcentaje_impuesto: Number(e.target.value) })
+                      }
                       className="su-inset rounded-2xl px-3 pr-7 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
-                      style={{ color: "var(--su-text-muted)" }}>%</span>
+                    <span
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+                      style={{ color: "var(--su-text-muted)" }}
+                    >
+                      %
+                    </span>
                   </div>
                 </Field>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-xs" style={{ color: "var(--su-text-muted)" }}>IVA calculado:</span>
+                <span className="text-xs" style={{ color: "var(--su-text-muted)" }}>
+                  IVA calculado:
+                </span>
                 <span className="text-xs tabular-nums" style={{ color: "var(--su-text-muted)" }}>
                   {fmtCurrency(form.compra_valor_impuesto)}
                 </span>
@@ -455,10 +582,16 @@ export function IncomesForm() {
 
               <Field label="Gastos de Envío">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
-                    style={{ color: "var(--su-text-muted)" }}>$</span>
+                  <span
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-xs"
+                    style={{ color: "var(--su-text-muted)" }}
+                  >
+                    $
+                  </span>
                   <Input
-                    type="number" min={0} step={0.01}
+                    type="number"
+                    min={0}
+                    step={0.01}
                     value={form.compra_gastos_envio}
                     onChange={(e) => patch({ compra_gastos_envio: Number(e.target.value) })}
                     className="su-inset rounded-2xl pl-6 pr-3 py-2.5 text-sm outline-none w-full text-right tabular-nums"
@@ -469,12 +602,16 @@ export function IncomesForm() {
               <div className="su-divider" />
 
               <div className="flex justify-between items-center">
-                <span className="text-sm font-bold uppercase tracking-wide"
-                  style={{ color: "var(--su-text)" }}>
+                <span
+                  className="text-sm font-bold uppercase tracking-wide"
+                  style={{ color: "var(--su-text)" }}
+                >
                   Total Factura:
                 </span>
-                <span className="text-lg font-bold tabular-nums"
-                  style={{ color: "var(--brand-indigo)" }}>
+                <span
+                  className="text-lg font-bold tabular-nums"
+                  style={{ color: "var(--brand-indigo)" }}
+                >
                   {fmtCurrency(form.compra_total_pagar)}
                 </span>
               </div>
@@ -490,14 +627,21 @@ export function IncomesForm() {
               >
                 {submitting ? (
                   <>
-                    <span className="w-4 h-4 rounded-full border-2 border-white/30
-                                     border-t-white animate-spin" />
+                    <span
+                      className="w-4 h-4 rounded-full border-2 border-white/30
+                                     border-t-white animate-spin"
+                    />
                     Procesando…
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor" strokeWidth={2}>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                     Procesar Ingreso a Stock
