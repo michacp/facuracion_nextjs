@@ -10,6 +10,7 @@ import {
     ListIvaComprasResponse,
     ListIvaDetalleParams,
     ListIvaVentasResponse,
+    StockBajoParams,
     StockBajoResponse,
     TopClientesResponse,
     TopProductosResponse,
@@ -40,8 +41,14 @@ export const reportesApi = {
     },
 
     /** Productos con stock por debajo del umbral configurado */
-    getStockBajo: async (): Promise<StockBajoResponse> => {
-        const { data } = await api.get<StockBajoResponse>("/reportes/stock-bajo");
+    getStockBajo: async (params?: StockBajoParams): Promise<StockBajoResponse> => {
+        const { data } = await api.get<StockBajoResponse>("/reportes/stock-bajo", {
+            params: {
+                umbral: params?.umbral,
+                page: params?.page,
+                limit: params?.limit,
+            },
+        });
         return data;
     },
 

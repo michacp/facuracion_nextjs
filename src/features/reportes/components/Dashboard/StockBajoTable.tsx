@@ -1,12 +1,7 @@
 // src/features/reportes/components/Dashboard/StockBajoTable.tsx
 "use client";
 
-import { useState, useMemo } from "react";
-import { StockBajoResponse } from "@/features/reportes/types/reportes.types";
-
-interface Props {
-  stockBajo: StockBajoResponse;
-}
+import { useStockBajo } from "@/features/reportes/hooks/useStockBajo";
 
 const PER_PAGE_OPTIONS = [5, 10, 20, 50] as const;
 
@@ -21,29 +16,27 @@ function getPageNumbers(current: number, total: number): (number | "…")[] {
   return pages;
 }
 
-export function StockBajoTable({ stockBajo }: Props) {
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+export function StockBajoTable() {
+  const { data, isLoading, error, page, perPage, setPage, setPerPage } = useStockBajo();
 
-  const totalPages = Math.ceil(stockBajo.total / perPage);
+  const { total, totalPages, items } = data;
   const from = (page - 1) * perPage;
-  const slice = useMemo(
-    () => stockBajo.items.slice(from, from + perPage),
-    [stockBajo.items, from, perPage]
-  );
   const pageNumbers = getPageNumbers(page, totalPages);
 
-  const handlePerPage = (n: number) => {
-    setPerPage(n);
-    setPage(1);
-  };
+  if (error) {
+    return (
+      <section className="space-y-3">
+        <p className="text-sm text-red-500">{error}</p>
+      </section>
+    );
+  }
 
-  if (stockBajo.total === 0) return null;
+  if (!isLoading && total === 0) return null;
 
   return (
     <section className="space-y-3">
       <h2 className="su-field-label">
-        Stock bajo ({stockBajo.total} productos)
+        Stock bajo {total > 0 && `(${total} productos)`}
       </h2>
 
       <div className="su-surface-md rounded-2xl overflow-hidden">
@@ -65,38 +58,51 @@ export function StockBajoTable({ stockBajo }: Props) {
             </tr>
           </thead>
           <tbody>
-            {slice.map((p) => (
-              <tr
-                key={p.item_id}
-                className="transition-colors"
-                style={{ borderTop: "1px solid var(--su-border)" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "var(--su-bg-deep)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "")
-                }
-              >
-                <td
-                  className="px-4 py-3 font-mono text-[11px]"
-                  style={{ color: "var(--su-text-muted)" }}
-                >
-                  {p.codigo}
-                </td>
-                <td className="px-4 py-3 text-sm" style={{ color: "var(--foreground)" }}>
-                  {p.nombre}
-                </td>
-                <td className="px-4 py-3 text-right text-sm font-bold text-red-500">
-                  {p.stock_total}
-                </td>
-                <td
-                  className="px-4 py-3 text-right text-sm"
-                  style={{ color: "var(--su-text-muted)" }}
-                >
-                  {p.umbral}
+            {isLoading ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-sm" style={{ color: "var(--su-text-muted)" }}>
+                  Cargando…
                 </td>
               </tr>
-            ))}
+            ) : (
+              items.map((p) => (
+                <tr
+                  key={p.item_id}
+                  className="transition-colors"
+                  style={{ borderTop: "1px solid var(--su-border)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--su-bg-deep)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "")
+                  }
+                >
+                  <td
+                    className="px-4 py-3 font-mono text-[11px]"
+                    style={{ color: "var(--su-text-muted)" }}
+                  >
+                    {p.codigo}
+                  </td>
+                  <td className="px-4 py-3 text-sm" style={{ color: "var(--foreground)" }}>
+                    {p.nombre}
+                    {p.modelos && p.modelos.length > 0 && (
+                      <span className="block text-[11px]" style={{ color: "var(--su-text-muted)" }}>
+                        {p.modelos.join(", ")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-red-500">
+                    {p.stock_total}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-right text-sm"
+                    style={{ color: "var(--su-text-muted)" }}
+                  >
+                    {p.umbral}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
 
@@ -105,14 +111,13 @@ export function StockBajoTable({ stockBajo }: Props) {
           className="flex items-center justify-between flex-wrap gap-2 px-4 py-2.5"
           style={{ borderTop: "1px solid var(--su-border-strong)" }}
         >
-          {/* Info + filas por página */}
           <div className="flex items-center gap-3 flex-wrap">
             <span
               className="text-[11px]"
               style={{ color: "var(--su-text-muted)" }}
             >
-              {from + 1}–{Math.min(from + perPage, stockBajo.total)} de{" "}
-              {stockBajo.total}
+              {total === 0 ? "0" : `${from + 1}–${Math.min(from + perPage, total)}`} de{" "}
+              {total}
             </span>
             <div
               className="flex items-center gap-1.5 text-[11px]"
@@ -121,7 +126,7 @@ export function StockBajoTable({ stockBajo }: Props) {
               Filas:
               <select
                 value={perPage}
-                onChange={(e) => handlePerPage(Number(e.target.value))}
+                onChange={(e) => setPerPage(Number(e.target.value))}
                 className="text-[11px] rounded-lg px-1.5 py-0.5 su-surface"
                 style={{ color: "var(--foreground)" }}
               >
@@ -134,10 +139,9 @@ export function StockBajoTable({ stockBajo }: Props) {
             </div>
           </div>
 
-          {/* Botones de página */}
           <div className="flex items-center gap-1.5">
             <PagBtn
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => setPage(page - 1)}
               disabled={page === 1}
               aria-label="Anterior"
             >
@@ -165,8 +169,8 @@ export function StockBajoTable({ stockBajo }: Props) {
             )}
 
             <PagBtn
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page === totalPages}
+              onClick={() => setPage(page + 1)}
+              disabled={page === totalPages || totalPages === 0}
               aria-label="Siguiente"
             >
               ›

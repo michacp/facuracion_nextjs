@@ -36,12 +36,20 @@ export interface ProductoStockBajo {
     nombre: string;
     stock_total: number;
     umbral: number;
-    modelos: string;
+    modelos: string[] | null;
 }
 
 export interface StockBajoResponse {
     total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
     items: ProductoStockBajo[];
+}
+export interface StockBajoParams {
+    umbral?: number;
+    page?: number; // base 0, como lo espera el backend
+    limit?: number;
 }
 
 export interface FirmaPorVencer {
@@ -103,7 +111,6 @@ export interface TopClientesResponse {
 export interface DashboardData {
     kpis: KpisResponse;
     ventasSemanas: VentasSemanaResponse;
-    stockBajo: StockBajoResponse;
     alertas: AlertasResponse;
     topProductos: TopProductosResponse;
     topClientes: TopClientesResponse;

@@ -60,7 +60,7 @@ export function Dashboard() {
       </section>
 
       {/* ── Stock bajo ────────────────────────────────────────────────────── */}
-      <StockBajoTable stockBajo={data.stockBajo} />
+      <StockBajoTable  />
 
       {/* ── Selector de período ───────────────────────────────────────────── */}
       <div className="flex items-center gap-2">
