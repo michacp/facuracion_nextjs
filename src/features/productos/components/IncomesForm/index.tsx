@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { GenericSelector } from "@/components/common/GenericSelector";
+import { NumericInput } from "@/components/common/NumericInput";
 import { useIncomesForm } from "../../hooks/useIncomesForm";
 import { fmtCurrency } from "../../utils/incomesForm.utils";
 import { NewProveedorModal } from "../../../proveedores/components/NewProveedorModal";
@@ -164,12 +165,11 @@ function DetalleRowUI({
       </p>
 
       {/* Cantidad */}
-      <TableInput
-        type="number"
+      <NumericInput
         min={1}
         value={row.cantidad}
-        extraClass="text-right"
-        onChange={(e) => onUpdate("cantidad", Number(e.target.value))}
+        className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums text-right"
+        onChange={(valor) => onUpdate("cantidad", valor)}
       />
 
       {/* Costo unitario */}
@@ -180,13 +180,12 @@ function DetalleRowUI({
         >
           $
         </span>
-        <TableInput
-          type="number"
+        <NumericInput
           min={0}
           step={0.01}
           value={row.costo_unitario}
-          extraClass="pl-6 pr-2 text-right"
-          onChange={(e) => onUpdate("costo_unitario", Number(e.target.value))}
+          className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums pl-6 pr-2 text-right"
+          onChange={(valor) => onUpdate("costo_unitario", valor)}
         />
       </div>
 
@@ -198,13 +197,12 @@ function DetalleRowUI({
         >
           $
         </span>
-        <TableInput
-          type="number"
+        <NumericInput
           min={0}
           step={0.01}
           value={row.descuento_linea}
-          extraClass="pl-6 pr-2 text-right"
-          onChange={(e) => onUpdate("descuento_linea", Number(e.target.value))}
+          className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums pl-6 pr-2 text-right"
+          onChange={(valor) => onUpdate("descuento_linea", valor)}
         />
       </div>
 
@@ -221,13 +219,12 @@ function DetalleRowUI({
         >
           $
         </span>
-        <TableInput
-          type="number"
+        <NumericInput
           min={0}
           step={0.01}
           value={row.precio_venta_sugerido}
-          extraClass="pl-6 pr-2 text-right"
-          onChange={(e) => onUpdate("precio_venta_sugerido", Number(e.target.value))}
+          className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums pl-6 pr-2 text-right"
+          onChange={(valor) => onUpdate("precio_venta_sugerido", valor)}
         />
       </div>
 
@@ -540,25 +537,23 @@ export function IncomesForm() {
                     >
                       $
                     </span>
-                    <Input
-                      type="number"
+                    <NumericInput
                       min={0}
                       step={0.01}
                       value={form.compra_descuento_global}
-                      onChange={(e) => patch({ compra_descuento_global: Number(e.target.value) })}
+                      onChange={(valor) => patch({ compra_descuento_global: valor })}
                       className="su-inset rounded-2xl pl-6 pr-3 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                     />
                   </div>
                 </Field>
                 <Field label="% IVA">
                   <div className="relative">
-                    <Input
-                      type="number"
+                    <NumericInput
                       min={0}
                       max={100}
                       value={form.compra_porcentaje_impuesto}
-                      onChange={(e) =>
-                        patch({ compra_porcentaje_impuesto: Number(e.target.value) })
+                      onChange={(valor) =>
+                        patch({ compra_porcentaje_impuesto: valor })
                       }
                       className="su-inset rounded-2xl px-3 pr-7 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                     />
@@ -589,12 +584,11 @@ export function IncomesForm() {
                   >
                     $
                   </span>
-                  <Input
-                    type="number"
+                  <NumericInput
                     min={0}
                     step={0.01}
                     value={form.compra_gastos_envio}
-                    onChange={(e) => patch({ compra_gastos_envio: Number(e.target.value) })}
+                    onChange={(valor) => patch({ compra_gastos_envio: valor })}
                     className="su-inset rounded-2xl pl-6 pr-3 py-2.5 text-sm outline-none w-full text-right tabular-nums"
                   />
                 </div>
