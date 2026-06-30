@@ -54,7 +54,7 @@ export function useSaleForm() {
 
     const [clientesIniciales, setClientesIniciales] = useState<Item[]>([]);
     const [productosIniciales, setProductosIniciales] = useState<Item[]>([]);
-    // Array completo de productos iniciales — lookup por índice
+    // Array completo de productos iniciales — lookup por id real (NO por índice)
     const [productosData, setProductosData] = useState<ProductosListSelect[]>([]);
     // Mapa id_real → producto para resultados de búsqueda explícita
     const [productosBusquedaData, setProductosBusquedaData] = useState<
@@ -118,10 +118,12 @@ export function useSaleForm() {
             if (data.productos) {
                 // Guardamos el array completo SIN deduplicar
                 setProductosData(data.productos);
-                // El selector usa el índice como id para evitar colisiones de id duplicado
+                // FIX: usar el id REAL del producto, nunca el índice del array.
+                // Antes: id: i  → rompía cualquier cruce posterior con búsquedas
+                // explícitas, que sí devuelven el id real de la base de datos.
                 setProductosIniciales(
-                    data.productos.map((p, i) => ({
-                        id: i,
+                    data.productos.map((p) => ({
+                        id: Number(p.id),
                         name: p.name,
                     }))
                 );
@@ -197,7 +199,8 @@ export function useSaleForm() {
     const buscarProductosExplicito = useCallback(async (search: string) => {
         if (!search.trim()) return;
         try {
-            // El endpoint solo devuelve {id, name} — no forzamos ProductosListSelect
+            // El endpoint solo devuelve {id, name} — no forzamos ProductosListSelect.
+            // El id que llega aquí ES el id real del producto (no un índice).
             const result: Item[] = await productApi.findProductsIdName({ search });
 
             // Con búsqueda explícita no tenemos price/es_servicio, así que
@@ -216,7 +219,13 @@ export function useSaleForm() {
         async (item: Item | null) => {
             if (!item) return;
 
-            let d: ProductosListSelect | undefined = productosData[item.id as number];
+            // FIX: buscar por id real con .find(), nunca por índice (productosData[item.id]).
+            // El id de "item" siempre es el id real del producto (tanto en la carga
+            // inicial como en la búsqueda explícita), así que el lookup debe ser
+            // siempre por igualdad de id, no por posición en el array.
+            let d: ProductosListSelect | undefined = productosData.find(
+                (p) => String(p.id) === String(item.id)
+            );
             if (!d) d = productosBusquedaData.get(item.id);
             if (!d) {
                 try {
