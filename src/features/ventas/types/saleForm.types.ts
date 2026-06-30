@@ -79,7 +79,10 @@ export interface ProductoUI {
 
 export interface NewDataVentas {
     clientes: ClientesListSelect[];
-    productos: ProductosListSelect[];
+    // FIX: el backend ya no devuelve productos en getNewData — ahora se
+    // obtienen por separado vía productApi.findProductsIdName({search: ""}).
+    // Se deja opcional para no asumir que siempre viene.
+    productos?: ProductosListSelect[];
     impuestos: ImpuestoSales[];
     vouchertype: TipoComprobante[];
     formapago: FormaPago[];

@@ -12,6 +12,7 @@ import {
 } from "../types/product.types";
 import { ListProductosParams, ListProductosResponse } from "../types/product-list.types";
 import { SaveItemResponseDto } from "../types/saveItemResponse.types";
+import type { ProductosListSelect } from "@/features/ventas/types/saleForm.types";
 
 export const productApi = {
     /** Datos iniciales: marcas, impuestos, tipos de ítem */
@@ -63,9 +64,16 @@ export const productApi = {
         await api.put("/items/editproduct", payload);
         toast.success("Producto actualizado correctamente");
     },
-    /** Busca productos por id/name (selector genérico) */
-    findProductsIdName: async (params: { search?: string }): Promise<{ id: number; name: string }[]> => {
-        const { data } = await api.post<{ id: number; name: string }[]>("/items/findproductsidname", params);
+    /**
+     * Busca productos (selector de ventas). El backend devuelve el objeto
+     * COMPLETO: id (lote_id para productos, item_id para servicios), name,
+     * price, stock, tax_percentage_id, es_servicio. Se usa tanto para la
+     * carga inicial (search vacío → últimos 50/200) como para la búsqueda
+     * explícita, así no hace falta un segundo endpoint ni un fallback a
+     * findOne para completar los datos del producto seleccionado.
+     */
+    findProductsIdName: async (params: { search?: string }): Promise<ProductosListSelect[]> => {
+        const { data } = await api.post<ProductosListSelect[]>("/items/findproductsidname", params);
         return data;
     },
 

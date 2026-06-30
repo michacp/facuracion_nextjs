@@ -47,6 +47,17 @@ const defaultValues: FacturaFormValues = {
     total: 0,
 };
 
+// Convierte un producto completo (ProductosListSelect) al Item que consume el selector.
+// FIX: lote_id (productos) e item_id (servicios) son contadores independientes en la
+// base de datos, así que pueden coincidir numéricamente entre un producto y un servicio.
+// Para que cada Item.id sea único en la lista combinada (y React no choque con keys
+// duplicadas), los servicios se mapean a un id NEGATIVO. El id real nunca es 0, así que
+// no hay forma de que un id positivo (producto) choque con uno negativo (servicio).
+function toItem(p: ProductosListSelect): Item {
+    const realId = Number(p.id);
+    return { id: p.es_servicio ? -realId : realId, name: p.name };
+}
+
 export function useSaleForm() {
     // ── Catálogos / selects ────────────────────────────────────────────────────
     const [clientesBusqueda, setClientesBusqueda] = useState<Item[]>([]);
@@ -54,12 +65,13 @@ export function useSaleForm() {
 
     const [clientesIniciales, setClientesIniciales] = useState<Item[]>([]);
     const [productosIniciales, setProductosIniciales] = useState<Item[]>([]);
-    // Array completo de productos iniciales — lookup por id real (NO por índice)
-    const [productosData, setProductosData] = useState<ProductosListSelect[]>([]);
-    // Mapa id_real → producto para resultados de búsqueda explícita
-    const [productosBusquedaData, setProductosBusquedaData] = useState<
-        Map<number | string, ProductosListSelect>
-    >(new Map());
+
+    // Único almacén de productos completos, indexado por id real (lote_id o item_id
+    // según es_servicio). Se llena tanto en la carga inicial como en cada búsqueda
+    // explícita — siempre con el objeto completo, nunca solo {id, name}.
+    const [productosMap, setProductosMap] = useState<Map<number, ProductosListSelect>>(
+        new Map()
+    );
 
     const [impuestos, setImpuestos] = useState<ImpuestoSales[]>([]);
     const [tipocomprobante, setTipocomprobante] = useState<TipoComprobante[]>([]);
@@ -95,11 +107,31 @@ export function useSaleForm() {
         setProductosUI([]);
     }, [form]);
 
-    // ── Carga inicial ──────────────────────────────────────────────────────────
+    // Guarda un lote de productos en el mapa central (merge, no reemplazo total).
+    // FIX: usa la misma clave con signo que toItem (negativo para servicios) para
+    // que nunca haya colisión entre el lote_id de un producto y el item_id de un
+    // servicio que numéricamente coincidan.
+    const guardarProductosEnMapa = useCallback((productos: ProductosListSelect[]) => {
+        setProductosMap((prev) => {
+            const next = new Map(prev);
+            for (const p of productos) {
+                const realId = Number(p.id);
+                const key = p.es_servicio ? -realId : realId;
+                next.set(key, p);
+            }
+            return next;
+        });
+    }, []);
+
+    // ── Carga inicial: dos endpoints en paralelo ────────────────────────────────
     const loadNewData = useCallback(async () => {
         try {
-            const data: NewDataVentas = await saleApi.getNewData();
-            console.log(data);
+            const [data, productos]: [NewDataVentas, ProductosListSelect[]] =
+                await Promise.all([
+                    saleApi.getNewData(), // ya NO trae productos
+                    productApi.findProductsIdName({ search: "" }), // últimos 50/lista inicial
+                ]);
+
             setImpuestos(data.impuestos ?? []);
             setTipocomprobante(data.vouchertype ?? []);
             setFormadepago(data.formapago ?? []);
@@ -115,19 +147,8 @@ export function useSaleForm() {
                 );
             }
 
-            if (data.productos) {
-                // Guardamos el array completo SIN deduplicar
-                setProductosData(data.productos);
-                // FIX: usar el id REAL del producto, nunca el índice del array.
-                // Antes: id: i  → rompía cualquier cruce posterior con búsquedas
-                // explícitas, que sí devuelven el id real de la base de datos.
-                setProductosIniciales(
-                    data.productos.map((p) => ({
-                        id: Number(p.id),
-                        name: p.name,
-                    }))
-                );
-            }
+            guardarProductosEnMapa(productos);
+            setProductosIniciales(productos.map(toItem));
 
             // FIX: setValue con String para que coincida con value del <select>
             const normalize = (s: string) =>
@@ -151,7 +172,7 @@ export function useSaleForm() {
             console.error("Error cargando datos:", err);
             toast.error("Error al cargar los datos del formulario");
         }
-    }, [form]);
+    }, [form, guardarProductosEnMapa]);
 
     const loadLast5Sales = useCallback(async () => {
         try {
@@ -196,54 +217,42 @@ export function useSaleForm() {
     );
 
     // ── Búsqueda explícita de productos ───────────────────────────────────────
-    const buscarProductosExplicito = useCallback(async (search: string) => {
-        if (!search.trim()) return;
-        try {
-            // El endpoint solo devuelve {id, name} — no forzamos ProductosListSelect.
-            // El id que llega aquí ES el id real del producto (no un índice).
-            const result: Item[] = await productApi.findProductsIdName({ search });
-
-            // Con búsqueda explícita no tenemos price/es_servicio, así que
-            // agregarProducto caerá al findOne para obtener el dato completo.
-            // Limpiamos el mapa para que no haya datos obsoletos de búsquedas anteriores.
-            setProductosBusquedaData(new Map());
-            setProductosBusqueda(result);
-        } catch (err) {
-            console.error(err);
-            toast.error("Error al buscar productos");
-        }
-    }, []);
+    // findProductsIdName devuelve el objeto COMPLETO (id, name, price, stock,
+    // tax_percentage_id, es_servicio) — lo guardamos en el mapa central y nunca
+    // necesitamos volver a pedirlo al seleccionar.
+    const buscarProductosExplicito = useCallback(
+        async (search: string) => {
+            if (!search.trim()) return;
+            try {
+                const result: ProductosListSelect[] = await productApi.findProductsIdName({
+                    search,
+                });
+                guardarProductosEnMapa(result);
+                setProductosBusqueda(result.map(toItem));
+            } catch (err) {
+                console.error(err);
+                toast.error("Error al buscar productos");
+            }
+        },
+        [guardarProductosEnMapa]
+    );
 
     // ── Agregar producto ───────────────────────────────────────────────────────
     const agregarProducto = useCallback(
-        async (item: Item | null) => {
+        (item: Item | null) => {
             if (!item) return;
 
-            // FIX: buscar por id real con .find(), nunca por índice (productosData[item.id]).
-            // El id de "item" siempre es el id real del producto (tanto en la carga
-            // inicial como en la búsqueda explícita), así que el lookup debe ser
-            // siempre por igualdad de id, no por posición en el array.
-            let d: ProductosListSelect | undefined = productosData.find(
-                (p) => String(p.id) === String(item.id)
-            );
-            if (!d) d = productosBusquedaData.get(item.id);
-            if (!d) {
-                try {
-                    d = await productApi.findOne({ id: item.id });
-                } catch {
-                    toast.error("Error al cargar el producto");
-                    return;
-                }
-            }
+            // item.id ya viene con el namespace de toItem (negativo si es servicio),
+            // así que se usa directo como clave del mapa — sin Number(item.id) plano,
+            // que perdería la distinción producto/servicio.
+            const d = productosMap.get(item.id as number);
             if (!d) {
                 toast.error("Producto no encontrado");
                 return;
             }
 
             // ── Duplicado: solo subir cantidad ────────────────────────────────────
-            const indexExistente = fields.findIndex(
-                (f) => f.productoId === d!.id
-            );
+            const indexExistente = fields.findIndex((f) => f.productoId === d.id);
 
             if (indexExistente !== -1) {
                 const cantidadActual = form.getValues(`productos.${indexExistente}.cantidad`);
@@ -264,13 +273,13 @@ export function useSaleForm() {
 
             setProductosUI((prev) => [
                 ...prev,
-                { nombre: d!.name, esServicio: d!.es_servicio },
+                { nombre: d.name, esServicio: d.es_servicio },
             ]);
 
             setProductosBusqueda([]);
             setTimeout(() => recalcular(), 0);
         },
-        [append, recalcular, productosData, productosBusquedaData, fields, form]
+        [append, recalcular, productosMap, fields, form]
     );
 
     const eliminarProducto = useCallback(
@@ -300,7 +309,19 @@ export function useSaleForm() {
         const values = form.getValues();
         const payload = {
             ...values,
+            tipoComprobante: Number(values.tipoComprobante),
+            formaPago: Number(values.formaPago),
+            clienteId: Number(values.clienteId),
             fechaEmision: formatDateToLocalString(new Date(values.fechaEmision)),
+            // FIX: codigoImpuesto y productoId se guardan como string en el estado
+            // del formulario (por el <select> y por consistencia interna), pero el
+            // backend espera number (@IsInt() @IsPositive()) — se convierten aquí,
+            // justo antes de enviar, sin tocar cómo vive el dato en el formulario.
+            productos: values.productos.map((p) => ({
+                ...p,
+                productoId: Number(p.productoId),
+                codigoImpuesto: Number(p.codigoImpuesto),
+            })),
         };
 
         setSaving(true);
