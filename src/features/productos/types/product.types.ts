@@ -53,7 +53,8 @@ export interface SaveProductoDto {
     tipo_item: number;
     nombre: string;
     descripcion: string;
-    precio_unitario: number;
+    precio_unitario: number | string; // 👈 permite "" mientras se edita
     id_tarifa_impuesto: number;
     modelos_ids: number[];
+    stock?: number | string;          // 👈 permite "" mientras se edita
 }

@@ -9,7 +9,7 @@ import { Brand, Model, Tax, Percentaje } from "../types/product.types";
 export interface Lote {
     lote_id: number;
     numero_lote: string;
-    cantidad: number;
+    cantidad: number | string; // 👈 permite "" mientras se edita
     fecha_ingreso: string;
 }
 
@@ -158,8 +158,21 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
 
     // ── updateLoteCantidad ────────────────────────────────────────────────────
 
-    function updateLoteCantidad(index: number, cantidad: number) {
-        const lotes = form.lotes.map((l, i) => (i === index ? { ...l, cantidad } : l));
+    // ── updateLoteCantidad ────────────────────────────────────────────────────
+
+    function updateLoteCantidad(index: number, value: string) {
+        // Guarda el valor crudo tal cual lo escribe el usuario (permite "" mientras edita)
+        const lotes = form.lotes.map((l, i) => (i === index ? { ...l, cantidad: value } : l));
+        patchForm({ lotes });
+    }
+
+    // Se llama en onBlur: si quedó vacío o inválido, lo deja en 0
+    function normalizeLoteCantidad(index: number) {
+        const lotes = form.lotes.map((l, i) => {
+            if (i !== index) return l;
+            const n = Number(l.cantidad);
+            return { ...l, cantidad: Number.isFinite(n) && l.cantidad !== "" ? n : 0 };
+        });
         patchForm({ lotes });
     }
 
@@ -181,7 +194,7 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
                 modelos_ids: form.modelos_ids,
                 lotes: form.lotes.map((l) => ({
                     lote_id: l.lote_id,
-                    cantidad: l.cantidad,
+                    cantidad: Number(l.cantidad) || 0,
                 })),
             });
             onClose(true);
@@ -204,6 +217,7 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
         onImpuestoChange,
         buscarModelos,
         updateLoteCantidad,
+        normalizeLoteCantidad, // 👈 nuevo
         onSubmit,
         cerrar,
     };

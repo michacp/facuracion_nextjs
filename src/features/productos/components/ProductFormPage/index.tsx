@@ -29,6 +29,10 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
+      onFocus={(e) => {
+        e.target.select();
+        props.onFocus?.(e);
+      }}
       className="su-inset rounded-2xl px-4 py-2.5 text-sm outline-none w-full
                  placeholder:text-[var(--su-text-subtle)]"
       style={{ color: "var(--foreground)" }}
@@ -104,8 +108,12 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
     ultimosProductos,
     form, patchForm,
     selectedImpuestoId,
+    esServicio,
     buscarModelos,
     onImpuestoChange,
+    onTipoItemChange,
+    normalizePrecio,
+    normalizeStock,
     onSubmit: _onSubmit,
     loadingInit,
     submitting,
@@ -156,7 +164,7 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
             <Field label="Tipo de Ítem">
               <Select
                 value={form.tipo_item || ""}
-                onChange={(e) => patchForm({ tipo_item: Number(e.target.value) })}
+                onChange={(e) => onTipoItemChange(Number(e.target.value))}
               >
                 <option value="">Seleccione…</option>
                 {tipoItems.map((t) => (
@@ -203,17 +211,31 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
             />
           </div>
 
-          {/* Fila 4 — Precio + Impuesto + Valor impuesto */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {/* Fila 4 — Precio + Stock + Impuesto + Valor impuesto */}
+          <div className={`grid grid-cols-2 gap-4 ${esServicio ? "sm:grid-cols-3" : "sm:grid-cols-4"}`}>
             <Field label="Precio Unitario">
               <Input
                 type="number"
                 min={0}
-                value={form.precio_unitario || ""}
-                onChange={(e) => patchForm({ precio_unitario: Number(e.target.value) })}
+                value={form.precio_unitario}
+                onChange={(e) => patchForm({ precio_unitario: e.target.value })}
+                onBlur={normalizePrecio}
                 placeholder="0.00"
               />
             </Field>
+
+            {!esServicio && (
+              <Field label="Stock Inicial">
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.stock ?? ""}
+                  onChange={(e) => patchForm({ stock: e.target.value })}
+                  onBlur={normalizeStock}
+                  placeholder="0"
+                />
+              </Field>
+            )}
 
             <Field label="Impuestos">
               <Select

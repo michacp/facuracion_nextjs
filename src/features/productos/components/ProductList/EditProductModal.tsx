@@ -27,6 +27,10 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
+      onFocus={(e) => {
+        e.target.select();
+        props.onFocus?.(e);
+      }}
       className="su-inset rounded-2xl px-4 py-2.5 text-sm outline-none w-full
                  placeholder:text-[var(--su-text-subtle)] disabled:opacity-50"
       style={{ color: "var(--foreground)" }}
@@ -59,14 +63,14 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
 // ── Componente visual ─────────────────────────────────────────────────────────
 
 export function EditProductModal({ productId, onClose }: Props) {
-  const {
-    marcas, impuestos, modelos, porcentajes,
-    selectedImpuestoId, preselectedModels,
-    form, patchForm,
-    loadingInit, submitting, formInvalid,
-    onImpuestoChange, buscarModelos, updateLoteCantidad,
-    onSubmit, cerrar,
-  } = useEditProduct(productId, onClose);
+const {
+  marcas, impuestos, modelos, porcentajes,
+  selectedImpuestoId, preselectedModels,
+  form, patchForm,
+  loadingInit, submitting, formInvalid,
+  onImpuestoChange, buscarModelos, updateLoteCantidad, normalizeLoteCantidad,
+  onSubmit, cerrar,
+} = useEditProduct(productId, onClose);
 
   return (
     /* Backdrop */
@@ -235,15 +239,17 @@ export function EditProductModal({ productId, onClose }: Props) {
                           style={{ color: "var(--su-text-muted)" }}>
                           {lote.numero_lote}
                         </p>
-                        <input
-                          type="number"
-                          min={0}
-                          value={lote.cantidad}
-                          onChange={(e) => updateLoteCantidad(i, Number(e.target.value))}
-                          className="su-inset rounded-xl px-3 py-1.5 text-sm outline-none
-                                     w-full tabular-nums text-right"
-                          style={{ color: "var(--foreground)" }}
-                        />
+<input
+  type="number"
+  min={0}
+  value={lote.cantidad}
+  onChange={(e) => updateLoteCantidad(i, e.target.value)}
+  onFocus={(e) => e.target.select()}
+  onBlur={() => normalizeLoteCantidad(i)}
+  className="su-inset rounded-xl px-3 py-1.5 text-sm outline-none
+             w-full tabular-nums text-right"
+  style={{ color: "var(--foreground)" }}
+/>
                         <p className="text-xs truncate" style={{ color: "var(--su-text-muted)" }}>
                           {lote.fecha_ingreso}
                         </p>

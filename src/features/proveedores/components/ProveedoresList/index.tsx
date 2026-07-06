@@ -16,12 +16,12 @@ import { NewProveedorModal } from "../NewProveedorModal";
 const COL_TEMPLATE = "1fr 160px 100px 1fr 80px 72px";
 
 const HEADERS: ColHeader[] = [
-    { label: "Razón social / Comercial" },
+    { label: "Comercial / Razón social" },
     { label: "Identificación" },
     { label: "País" },
     { label: "Contacto" },
     { label: "Compras", align: "right" },
-    { label: "",         align: "center" },
+    { label: "", align: "center" },
 ];
 
 // ── Ícono vacío ───────────────────────────────────────────────────────────────
@@ -39,8 +39,8 @@ function ProveedorEmptyIcon() {
 // ── Fila ──────────────────────────────────────────────────────────────────────
 interface ProveedorRowProps {
     proveedor: ProveedorListItem;
-    onView:    (p: ProveedorListItem) => void;
-    onDelete:  (p: ProveedorListItem) => void;
+    onView: (p: ProveedorListItem) => void;
+    onDelete: (p: ProveedorListItem) => void;
 }
 
 function ProveedorRow({ proveedor, onView, onDelete }: ProveedorRowProps) {
@@ -48,9 +48,9 @@ function ProveedorRow({ proveedor, onView, onDelete }: ProveedorRowProps) {
         <Row colTemplate={COL_TEMPLATE} py="py-2.5">
 
             <Cell
-                main={proveedor.razon_social}
+                main={proveedor.nombre_comercial || proveedor.razon_social}
                 sub={proveedor.nombre_comercial !== proveedor.razon_social
-                    ? proveedor.nombre_comercial
+                    ? proveedor.razon_social
                     : undefined}
             />
 
@@ -63,7 +63,7 @@ function ProveedorRow({ proveedor, onView, onDelete }: ProveedorRowProps) {
             <Cell main={proveedor.pais} />
 
             <Cell
-                main={proveedor.email   || "—"}
+                main={proveedor.email || "—"}
                 sub={proveedor.telefono || undefined}
             />
 
@@ -118,10 +118,10 @@ export function ProveedoresList() {
         handleSearchChange, handlePageChange, refetch,
     } = useProveedoresList();
 
-    const [newModalOpen,      setNewModalOpen]      = useState(false);
-    const [viewingId,         setViewingId]         = useState<number | null>(null);
+    const [newModalOpen, setNewModalOpen] = useState(false);
+    const [viewingId, setViewingId] = useState<number | null>(null);
     const [deletingProveedor, setDeletingProveedor] = useState<ProveedorListItem | null>(null);
-    const [deleting,          setDeleting]          = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const handleConfirmDelete = async () => {
         if (!deletingProveedor) return;

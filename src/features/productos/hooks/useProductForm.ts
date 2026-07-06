@@ -16,9 +16,10 @@ const EMPTY_FORM: SaveProductoDto = {
     tipo_item: 0,
     nombre: "",
     descripcion: "",
-    precio_unitario: 0,
+    precio_unitario: "",
     id_tarifa_impuesto: 0,
     modelos_ids: [],
+    stock: "",
 };
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -44,6 +45,11 @@ export function useProductForm() {
     const [loadingInit, setLoadingInit] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
+    // ── Derivado: ¿el tipo de ítem seleccionado es Servicio? ───────────────────
+
+    const esServicio =
+        tipoItems.find((t) => t.id === form.tipo_item)?.name?.toUpperCase() === "SERVICIO";
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     function patchForm(partial: Partial<SaveProductoDto>) {
@@ -54,6 +60,22 @@ export function useProductForm() {
         setForm({ ...EMPTY_FORM, ...overrides });
         setModelos([]);
         setSelectedImpuestoId(null);
+    }
+
+    // ── Normalizar campos numéricos en blur (deja 0 si quedó vacío/ inválido) ──
+
+    function normalizePrecio() {
+        setForm((prev) => {
+            const n = Number(prev.precio_unitario);
+            return { ...prev, precio_unitario: Number.isFinite(n) && prev.precio_unitario !== "" ? n : 0 };
+        });
+    }
+
+    function normalizeStock() {
+        setForm((prev) => {
+            const n = Number(prev.stock);
+            return { ...prev, stock: Number.isFinite(n) && prev.stock !== "" ? n : 0 };
+        });
     }
 
     // ── Cargar porcentajes por impuesto (onImpuestoSeleccionado) ───────────────
@@ -136,6 +158,18 @@ export function useProductForm() {
         else { setPorcentajes([]); patchForm({ id_tarifa_impuesto: 0 }); }
     }
 
+    // ── Cambiar tipo de ítem (onTipoItemChange) ────────────────────────────────
+    // Si pasa a Servicio, limpiamos el stock para no arrastrar un valor viejo.
+
+    function onTipoItemChange(tipoItemId: number) {
+        const tipo = tipoItems.find((t) => t.id === tipoItemId);
+        const nuevoEsServicio = tipo?.name?.toUpperCase() === "SERVICIO";
+        patchForm({
+            tipo_item: tipoItemId,
+            ...(nuevoEsServicio ? { stock: "" } : {}),
+        });
+    }
+
     // ── Submit (onSubmit) ────────────────────────────────────────────────────── 
     async function onSubmit(): Promise<SaveItemResponseDto | null> {
         if (
@@ -150,7 +184,13 @@ export function useProductForm() {
 
         setSubmitting(true);
         try {
-            const result: SaveItemResponseDto = await productApi.save(form);
+            const payload: SaveProductoDto = {
+                ...form,
+                precio_unitario: Number(form.precio_unitario) || 0,
+                // Nunca mandamos stock si es servicio, evita ambigüedad aunque el UI lo oculte
+                stock: esServicio ? undefined : (Number(form.stock) || 0),
+            };
+            const result: SaveItemResponseDto = await productApi.save(payload);
             await Promise.all([loadInitialData(), loadLastProducts()]);
             resetForm();
             return result;
@@ -171,9 +211,13 @@ export function useProductForm() {
         // Form state
         form, patchForm,
         selectedImpuestoId,
+        esServicio,
         // Acciones
         buscarModelos,
         onImpuestoChange,
+        onTipoItemChange,
+        normalizePrecio,
+        normalizeStock,
         onSubmit,
         // UI flags
         loadingInit,
