@@ -86,18 +86,20 @@ function EmptyIcon() {
 
 function FacturaRow({
   factura,
-  syncingId, printingId, printingA4Id, retryingId,
-  onSync, onPrintTicket, onPrintA4, onRetry,
+  syncingId, printingId, printingA4Id, retryingId, emailingId,    
+  onSync, onPrintTicket, onPrintA4, onRetry, onSendEmail,        
 }: {
   factura: FacturaItem;
   syncingId: number | null;
   printingId: number | null;
   printingA4Id: number | null;
   retryingId: number | null;
+  emailingId: number | null;      
   onSync: (f: FacturaItem) => void;
   onPrintTicket: (f: FacturaItem) => void;
   onPrintA4: (f: FacturaItem) => void;
   onRetry: (f: FacturaItem) => void;
+  onSendEmail: (f: FacturaItem) => void; 
 }) {
   const estadoStyle   = getEstadoStyles(factura.estado);
   const ambienteStyle = getAmbienteStyles(factura.ambiente);
@@ -152,10 +154,12 @@ function FacturaRow({
           printingId={printingId}
           printingA4Id={printingA4Id}
           retryingId={retryingId}
+          emailingId={emailingId}  
           onSync={onSync}
           onPrintTicket={onPrintTicket}
           onPrintA4={onPrintA4}
           onRetry={onRetry}
+          onSendEmail={onSendEmail}
         />
       </div>
 
@@ -173,8 +177,8 @@ export function InvoiceList() {
     onSearchKeyup, applyFilters,
     currentPage, totalItems, itemsPerPage, onPageChange,
     facturas, estados, isLoading,
-    syncingId, printingId, printingA4Id, retryingId,
-    onSync, onRetry, onPrintTicket, onPrintA4,
+    syncingId, printingId, printingA4Id, retryingId, emailingId,  
+    onSync, onRetry, onPrintTicket, onPrintA4, onSendEmail,       
   } = useInvoiceList();
 
   return (
@@ -226,10 +230,12 @@ export function InvoiceList() {
             printingId={printingId}
             printingA4Id={printingA4Id}
             retryingId={retryingId}
+            emailingId={emailingId} 
             onSync={onSync}
             onPrintTicket={onPrintTicket}
             onPrintA4={onPrintA4}
             onRetry={onRetry}
+            onSendEmail={onSendEmail}
           />
         ))}
       </Table>

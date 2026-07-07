@@ -59,3 +59,10 @@ export interface RetryFacturaResponse {
 export interface PrintPdfResponse {
     base64: string;
 }
+
+export interface SendEmailDto { venta_id: number; }
+export interface SendEmailResponse {
+    success: boolean;
+    mensaje: string;
+    destinatarios: string[];
+}

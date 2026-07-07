@@ -8,6 +8,8 @@ import {
     PrintPdfResponse,
     RetryFacturaDto,
     RetryFacturaResponse,
+    SendEmailDto,
+    SendEmailResponse,
     SyncFacturaDto,
     SyncFacturaResponse,
 } from "../types/invoice.types";
@@ -60,4 +62,12 @@ export const invoiceApi = {
         const { data } = await api.post<PrintPdfResponse>("/pdf/a4-pdf", dto);
         openBase64Pdf(data.base64);
     },
+    sendEmailFactura: async (dto: SendEmailDto): Promise<SendEmailResponse> => {
+        const { data } = await api.post<SendEmailResponse>("/facturas/send-email", dto);
+        if (data.success) {
+            toast.success(data.mensaje);
+        }
+        return data;
+    },
+
 };

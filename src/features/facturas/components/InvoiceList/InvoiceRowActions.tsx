@@ -9,10 +9,12 @@ interface Props {
   printingId:   number | null;
   printingA4Id: number | null;
   retryingId:   number | null;
+  emailingId:   number | null;    
   onSync:        (f: FacturaItem) => void;
   onPrintTicket: (f: FacturaItem) => void;
   onPrintA4:     (f: FacturaItem) => void;
   onRetry:       (f: FacturaItem) => void;
+  onSendEmail:   (f: FacturaItem) => void; 
 }
 
 function Spinner() {
@@ -46,8 +48,8 @@ function ActionBtn({
 
 export function InvoiceRowActions({
   factura,
-  syncingId, printingId, printingA4Id, retryingId,
-  onSync, onPrintTicket, onPrintA4, onRetry,
+  syncingId, printingId, printingA4Id, retryingId, emailingId,   // ← debe estar aquí
+  onSync, onPrintTicket, onPrintA4, onRetry, onSendEmail,        // ← y aquí
 }: Props) {
   const canRetry = factura.estado === "PENDIENTE" || factura.estado === "DEVUELTA";
 
@@ -80,6 +82,17 @@ export function InvoiceRowActions({
             d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
       </ActionBtn>
+
+            {/* Enviar por correo — solo si tiene XML (opcional, quita la condición si no aplica) */}
+      {factura.tiene_xml && (
+        <ActionBtn loading={emailingId === factura.factura_id} title="Enviar por correo"
+          onClick={() => onSendEmail(factura)}>
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </ActionBtn>
+      )}
 
       {/* Reintentar — solo PENDIENTE o DEVUELTA */}
       {canRetry && (

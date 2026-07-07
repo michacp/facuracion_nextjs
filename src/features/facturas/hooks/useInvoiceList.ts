@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoiceApi } from "../api/invoice.api";
 import { EstadoItem, FacturaItem } from "../types/invoice.types";
+import { toast } from "sonner";
 
 const PAGE_SIZE_DEFAULT = 30;
 
@@ -30,6 +31,7 @@ export function useInvoiceList() {
     const [printingId, setPrintingId] = useState<number | null>(null);
     const [printingA4Id, setPrintingA4Id] = useState<number | null>(null);
     const [retryingId, setRetryingId] = useState<number | null>(null);
+    const [emailingId, setEmailingId] = useState<number | null>(null);
 
     const previousSearch = useRef("");
 
@@ -157,7 +159,17 @@ export function useInvoiceList() {
         try { await invoiceApi.printA4PDF({ id: factura.venta_id }); }
         finally { setPrintingA4Id(null); }
     };
-
+    const onSendEmail = async (factura: FacturaItem) => {
+        setEmailingId(factura.factura_id);
+        try {
+            await invoiceApi.sendEmailFactura({ venta_id: factura.venta_id });
+            // el toast de éxito ya lo dispara invoiceApi.sendEmailFactura
+        } catch (err) {
+            toast.error("No se pudo enviar el correo. Intenta de nuevo.");
+        } finally {
+            setEmailingId(null);
+        }
+    };
     return {
         // Filtros
         searchText, setSearchText,
@@ -169,8 +181,8 @@ export function useInvoiceList() {
         // Datos
         facturas, estados, isLoading,
         // Loading por fila
-        syncingId, printingId, printingA4Id, retryingId,
+        syncingId, printingId, printingA4Id, retryingId, emailingId, // ← agregado
         // Acciones
-        onSync, onRetry, onPrintTicket, onPrintA4,
+        onSync, onRetry, onPrintTicket, onPrintA4, onSendEmail,       // ← agregado
     };
 }
