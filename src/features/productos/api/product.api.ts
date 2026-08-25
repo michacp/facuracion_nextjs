@@ -78,8 +78,14 @@ export const productApi = {
     },
 
     /** Busca productos habilitados para compra */
-    findForPurchase: async (params: { search?: string }): Promise<{ id: number; name: string; precio_actual: number }[]> => {
-        const { data } = await api.post<{ id: number; name: string; precio_actual: number }[]>("/items/find-for-purchase", params);
+    findForPurchase: async (params: { search?: string }):
+        Promise<{ id: number; name: string; precio_actual: number; require_imei?: boolean }[]> => {
+        const { data } = await api.post
+            <{ id: number; name: string; precio_actual: number; require_imei?: boolean }[]>("/items/find-for-purchase", params);
+        return data;
+    },
+    addLote: async (payload: { item_id: number; imeis?: string[] }): Promise<any> => {
+        const { data } = await api.post("/items/add-lote", payload);
         return data;
     },
 };

@@ -1,11 +1,11 @@
 "use client";
-
+import { useState } from "react";
 import { GenericChipsSelector } from "../../../../components/common/GenericChipsSelector";
 import { GenericSelector } from "../../../../components/common/GenericSelector";
 import { useProductForm } from "../../hooks/useProductForm";
 import type { SaveItemResponseDto } from "../../types/saveItemResponse.types";
 import { ProductoList } from "../../types/product.types";
-
+import { ImeisModal } from "../IncomesForm/ImeisModal";
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface ProductFormPageProps {
@@ -39,7 +39,32 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
     />
   );
 }
+// agrega este componente junto a los otros subcomponentes (Field, Input, Select, Textarea)
 
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full
+                 transition-colors duration-200 focus:outline-none"
+      style={{
+        background: checked
+          ? "linear-gradient(135deg, var(--brand-blue), var(--brand-sky))"
+          : "var(--su-bg-deep)",
+        boxShadow: checked ? "var(--su-shadow-brand)" : "var(--su-shadow-inset)",
+        border: "1px solid var(--su-border)",
+      }}
+    >
+      <span
+        className="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 mt-0.5"
+        style={{ transform: checked ? "translateX(22px)" : "translateX(3px)" }}
+      />
+    </button>
+  );
+}
 function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
@@ -75,10 +100,10 @@ function ProductoCard({ producto }: { producto: ProductoList }) {
       </p>
       <div className="su-divider my-0.5" />
       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-        <InfoRow label="Marca"    value={producto.marcas} />
-        <InfoRow label="Modelo"   value={producto.modelos} />
-        <InfoRow label="Precio"   value={`$${producto.precio}`} />
-        <InfoRow label="Stock"    value={String(producto.stock)} />
+        <InfoRow label="Marca" value={producto.marcas} />
+        <InfoRow label="Modelo" value={producto.modelos} />
+        <InfoRow label="Precio" value={`$${producto.precio}`} />
+        <InfoRow label="Stock" value={String(producto.stock)} />
         <div className="col-span-2">
           <InfoRow label="Impuesto" value={producto.impuesto_nombre} />
         </div>
@@ -102,11 +127,12 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 // Componente principal
 // ─────────────────────────────────────────────────────────────────────────────
 
+
 export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
   const {
     marcas, impuestos, tipoItems, modelos, porcentajes,
     ultimosProductos,
-    form, patchForm,
+    form, patchForm, setImeis,
     selectedImpuestoId,
     esServicio,
     buscarModelos,
@@ -119,13 +145,18 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
     submitting,
   } = useProductForm();
 
-  const formInvalid =
-    !form.tipo_item ||
-    !form.nombre.trim() ||
-    !form.id_tarifa_impuesto ||
-    form.modelos_ids.length === 0;
+  const [imeiModalOpen, setImeiModalOpen] = useState(false);
 
-  // Captura el resultado y dispara onSuccess si hay callback
+  const stockNum = Number(form.stock) || 0;
+  const imeisCargados = (form.imeis ?? []).filter((v) => v.trim()).length;
+
+const formInvalid =
+  !form.tipo_item ||
+  !form.nombre.trim() ||
+  !form.id_tarifa_impuesto ||
+  form.modelos_ids.length === 0 ||
+  (!esServicio && !!form.require_imei && stockNum === 1 && imeisCargados < 1);
+
   async function handleSubmit() {
     const result = await _onSubmit();
     if (result && onSuccess) {
@@ -156,7 +187,6 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
 
       <div className="flex flex-col lg:flex-row gap-6">
 
-        {/* ── Columna izquierda: formulario ── */}
         <div className="flex-1 flex flex-col gap-5">
 
           {/* Fila 1 — Tipo ítem + Nombre */}
@@ -229,11 +259,25 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
                 <Input
                   type="number"
                   min={0}
+                  max={form.require_imei ? 1 : undefined}
                   value={form.stock ?? ""}
-                  onChange={(e) => patchForm({ stock: e.target.value })}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    // Si requiere IMEI, no permitir más de 1
+                    if (form.require_imei && raw !== "" && Number(raw) > 1) {
+                      patchForm({ stock: "1" });
+                      return;
+                    }
+                    patchForm({ stock: raw });
+                  }}
                   onBlur={normalizeStock}
                   placeholder="0"
                 />
+                {form.require_imei && (
+                  <p className="text-[11px] mt-1 pl-1" style={{ color: "var(--su-text-subtle)" }}>
+                    Máximo 1 unidad — los ítems con IMEI se ingresan de a uno
+                  </p>
+                )}
               </Field>
             )}
 
@@ -266,6 +310,54 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
               </Select>
             </Field>
           </div>
+
+          {/* Fila 5 — Requiere IMEI (solo productos) */}
+          {!esServicio && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3 su-inset rounded-2xl px-4 py-3 w-fit">
+                <Toggle
+                  checked={!!form.require_imei}
+                  onChange={(v) => {
+                    const stockActual = Number(form.stock) || 0;
+                    patchForm({
+                      require_imei: v,
+                      stock: v && stockActual > 1 ? "1" : form.stock,
+                      imeis: v ? form.imeis : [],
+                    });
+                  }}
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
+                    Requiere IMEI
+                  </span>
+                  <span className="text-[11px]" style={{ color: "var(--su-text-muted)" }}>
+                    Activa esto para celulares u otros ítems con IMEI único
+                  </span>
+                </div>
+              </div>
+
+              {/* Botón para cargar IMEIs del stock inicial */}
+{form.require_imei && stockNum === 1 && (
+  <button
+    type="button"
+    onClick={() => setImeiModalOpen(true)}
+    className="text-xs font-semibold flex items-center gap-1.5 w-fit px-3 py-2 rounded-xl su-inset"
+    style={{ color: imeisCargados >= 1 ? "var(--brand-blue)" : "#dc2626" }}
+  >
+    {/* icono */}
+    {imeisCargados === 0
+      ? "Cargar IMEI"
+      : `${imeisCargados} IMEI${imeisCargados > 1 ? "s" : ""} cargado${imeisCargados > 1 ? "s" : ""}`}
+  </button>
+)}
+
+              {form.require_imei && stockNum === 0 && (
+                <p className="text-[11px] pl-1" style={{ color: "var(--su-text-subtle)" }}>
+                  Ingresa el stock inicial para poder cargar los IMEIs
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Botón guardar */}
           <div className="flex justify-center pt-2">
@@ -305,6 +397,21 @@ export function ProductFormPage({ onSuccess }: ProductFormPageProps) {
           )}
         </div>
       </div>
+
+      {/* ── Modal: IMEIs del stock inicial ── */}
+{imeiModalOpen && (
+  <ImeisModal
+    productoNombre={form.nombre || "Producto"}
+    minImeis={1}
+    maxImeis={2}
+    imeisIniciales={form.imeis ?? []}
+    onClose={() => setImeiModalOpen(false)}
+    onSave={(imeis) => {
+      setImeis(imeis);
+      setImeiModalOpen(false);
+    }}
+  />
+)}
     </div>
   );
 }

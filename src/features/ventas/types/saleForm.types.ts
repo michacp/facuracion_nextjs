@@ -13,6 +13,8 @@ export interface ProductosListSelect {
     price: number;
     es_servicio: boolean;
     tax_percentage_id: number | string;
+    require_imei?: boolean;   // ← NUEVO
+    imeis?: string[];
     [key: string]: any;
 }
 
@@ -53,6 +55,7 @@ export interface ProductoLinea {
     precioUnitario: number;
     descuento: number;
     codigoImpuesto: number | string;
+    imei_ids?: number[];      // ← NUEVO
 }
 
 export interface FacturaFormValues {
@@ -75,6 +78,8 @@ export interface FacturaFormValues {
 export interface ProductoUI {
     nombre: string;
     esServicio: boolean;
+    requireImei?: boolean;    // ← NUEVO
+    imeisDisplay?: string[];  // ← NUEVO — solo para mostrar en la tabla, no editable
 }
 
 export interface NewDataVentas {

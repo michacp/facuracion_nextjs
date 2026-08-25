@@ -9,6 +9,8 @@ import { NewProveedorModal } from "../../../proveedores/components/NewProveedorM
 import { NewProductoModal } from "../NewProductoModal";
 import type { DetalleRow } from "../../types/incomesForm.types";
 import type { SaveItemResponseDto } from "../../types/saveItemResponse.types";
+import { ImeisModal } from "./ImeisModal";
+import { imeisCompletos } from "../../utils/incomesForm.utils";
 
 // ── Helper: selecciona todo al hacer focus ────────────────────────────────────
 
@@ -150,25 +152,49 @@ function DetalleRowUI({
   row,
   onUpdate,
   onRemove,
+  onOpenImeis,           // ← faltaba
 }: {
   row: DetalleRow;
   onUpdate: (campo: keyof DetalleRow, valor: number | boolean) => void;
   onRemove: () => void;
+  onOpenImeis: () => void;   // ← faltaba
 }) {
+  const completos = imeisCompletos(row);   // ← faltaba
+
   return (
     <div
       className="grid items-center gap-3 px-4 py-2.5 border-t"
       style={{ gridTemplateColumns: COL_TEMPLATE, borderColor: "var(--su-border)" }}
     >
-      <p className="text-sm truncate font-medium" style={{ color: "var(--foreground)" }}>
-        {row.nombre_visual}
-      </p>
+      <div className="min-w-0">
+        <p className="text-sm truncate font-medium" style={{ color: "var(--foreground)" }}>
+          {row.nombre_visual}
+        </p>
+{row.require_imei && (
+          <button
+            type="button"
+            onClick={onOpenImeis}
+            className="text-[11px] font-semibold mt-0.5 flex items-center gap-1"
+            style={{ color: completos ? "var(--brand-blue)" : "#dc2626" }}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6M9 8h6M5 5h14v14H5z" />
+            </svg>
+            {row.imeis.filter((v) => v.trim()).length === 0
+              ? "Cargar IMEI"
+              : `${row.imeis.filter((v) => v.trim()).length} IMEI${row.imeis.filter((v) => v.trim()).length > 1 ? "s" : ""}`}
+          </button>
+        )}
+      </div>
 
       {/* Cantidad */}
       <NumericInput
         min={1}
+        max={row.require_imei ? 1 : undefined}
         value={row.cantidad}
-        className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums text-right"
+        disabled={row.require_imei}
+        className="su-inset rounded-xl px-2 py-1.5 text-sm outline-none w-full tabular-nums text-right
+                   disabled:opacity-60"
         onChange={(valor) => onUpdate("cantidad", valor)}
       />
 
@@ -308,10 +334,11 @@ export function IncomesForm() {
     buscarProductos,
     agregarProducto,
     actualizarDetalle,
+    actualizarImeis,
     removerDetalle,
     onSubmit,
   } = useIncomesForm();
-
+  const [imeiModalItemId, setImeiModalItemId] = useState<string | null>(null);
   // ── Cuando se crea un producto desde el modal ─────────────────────────────
   function onProductoCreado(result: SaveItemResponseDto) {
     if (result.es_servicio) return; // servicios no van a la tabla de ingreso
@@ -319,6 +346,7 @@ export function IncomesForm() {
       id: result.id,
       name: result.name,
       precio_actual: result.precio_actual,
+      require_imei: result.require_imei,
     });
   }
 
@@ -455,16 +483,17 @@ export function IncomesForm() {
             {form.detalles.length > 0 ? (
               <div className="su-surface rounded-2xl overflow-hidden mt-2">
                 <TableHeader />
-                {form.detalles.map((row) => (
-                  <DetalleRowUI
-                    key={row.item_id}
-                    row={row}
-                    onUpdate={(campo, valor) =>
-                      actualizarDetalle(row.item_id, { [campo]: valor })
-                    }
-                    onRemove={() => removerDetalle(row.item_id)}
-                  />
-                ))}
+{form.detalles.map((row) => (
+  <DetalleRowUI
+    key={row.row_id}                     // ← antes: row.item_id
+    row={row}
+    onUpdate={(campo, valor) =>
+      actualizarDetalle(row.row_id, { [campo]: valor })   // ← antes: row.item_id
+    }
+    onRemove={() => removerDetalle(row.row_id)}           // ← antes: row.item_id
+    onOpenImeis={() => setImeiModalItemId(row.row_id)}    // ← este ya lo tenías bien
+  />
+))}
               </div>
             ) : (
               <div
@@ -667,6 +696,25 @@ export function IncomesForm() {
           }}
         />
       )}
+      {/* ── Modal: IMEIs ── */}
+{/* ── Modal: IMEIs ── */}
+{imeiModalItemId !== null && (() => {
+  const row = form.detalles.find((d) => d.row_id === imeiModalItemId); // ← antes: d.item_id
+  if (!row) return null;
+  return (
+    <ImeisModal
+      productoNombre={row.nombre_visual}
+      minImeis={1}
+      maxImeis={2}
+      imeisIniciales={row.imeis}
+      onClose={() => setImeiModalItemId(null)}
+      onSave={(imeis) => {
+        actualizarImeis(row.row_id, imeis); // ← antes: row.item_id
+        setImeiModalItemId(null);
+      }}
+    />
+  );
+})()}
     </div>
   );
 }

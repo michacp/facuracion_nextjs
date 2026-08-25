@@ -9,6 +9,7 @@ export interface ProductOption {
     id: number;
     name: string;
     precio_actual: number;
+    require_imei?: boolean; // ← NUEVO
 }
 
 export interface DetalleRow {
@@ -20,6 +21,9 @@ export interface DetalleRow {
     subtotal_linea: number;
     precio_venta_sugerido: number;
     aplicar_pvp: boolean;
+    require_imei: boolean;   // ← NUEVO
+    imeis: string[];         // ← NUEVO
+    row_id: string;
 }
 
 export interface IncomesFormState {
@@ -63,5 +67,6 @@ export interface SaveCompraPayload {
         descuento_linea?: number;
         precio_venta_sugerido?: number;
         aplicar_pvp: boolean;
+        imeis?: string[]; // ← NUEVO
     }[];
 }

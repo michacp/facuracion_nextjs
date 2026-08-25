@@ -4,6 +4,10 @@ import type React from "react";
 export interface Item {
     id: number;
     name: string;
+    /** IMEIs disponibles — solo aplica a lotes de productos con require_imei */
+    imeis?: string[];
+    /** Indica si este ítem requiere selección/visualización de IMEI */
+    requireImei?: boolean;
 }
 
 export interface GenericSelectorProps {

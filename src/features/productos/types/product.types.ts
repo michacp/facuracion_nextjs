@@ -57,4 +57,6 @@ export interface SaveProductoDto {
     id_tarifa_impuesto: number;
     modelos_ids: number[];
     stock?: number | string;          // 👈 permite "" mientras se edita
+    require_imei?: boolean;
+    imeis?: string[];
 }

@@ -189,33 +189,38 @@ export function SaleForm() {
               </div>
             </div>
 
-            {/* ── Productos ────────────────────────────────────────── */}
-            <div className="su-surface-md rounded-2xl p-5 flex flex-col gap-6">
-              <GenericSelector
-                key={selectorKey}
-                label="Agregar Producto / Servicio"
-                placeholder="Buscar producto por nombre…"
-                options={productosOpciones}
-                initialOptions={productosIniciales}
-                value={productoSeleccionado}
-                onSearchExplicit={buscarProductosExplicito}
-                onSelect={(item) => {
-                  agregarProducto(item);
-                  setSelectorKey(k => k + 1);
-                }}
-              />
+{/* ── Productos ────────────────────────────────────────── */}
+<div className="su-surface-md rounded-2xl p-5 flex flex-col gap-6">
+  <div>
+    <GenericSelector
+      key={selectorKey}
+      label="Agregar Producto / Servicio"
+      placeholder="Nombre, modelo, marca o #IMEI…"
+      options={productosOpciones}
+      initialOptions={productosIniciales}
+      value={productoSeleccionado}
+      onSearchExplicit={buscarProductosExplicito}
+      onSelect={(item) => {
+        agregarProducto(item);
+        setSelectorKey(k => k + 1);
+      }}
+    />
+    <p className="text-[10px] mt-1 pl-1" style={{ color: "var(--su-text-subtle)" }}>
+      Escribe <span className="font-semibold">#</span> seguido del IMEI (completo o parcial) para buscar un celular específico. Ej: <span className="font-mono">#4589</span>
+    </p>
+  </div>
 
-              <ProductosTable
-                form={form}
-                fields={fields}
-                productosUI={productosUI}
-                impuestos={impuestos}
-                onEliminar={eliminarProducto}
-                onCambio={recalcular}
-              />
+  <ProductosTable
+    form={form}
+    fields={fields}
+    productosUI={productosUI}
+    impuestos={impuestos}
+    onEliminar={eliminarProducto}
+    onCambio={recalcular}
+  />
 
-              <TotalesPanel form={form} />
-            </div>
+  <TotalesPanel form={form} />
+</div>
 
             {/* ── Guardar ──────────────────────────────────────────── */}
             <div className="flex justify-end">

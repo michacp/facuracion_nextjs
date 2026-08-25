@@ -39,6 +39,10 @@ export function GenericSelector({
   const inputRef   = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // ¿El texto actual está en "modo IMEI" (empieza con #)?
+  const isImeiMode = inputText.trim().startsWith("#");
+  const imeiQuery = isImeiMode ? inputText.trim().slice(1) : "";
+
   // Valor controlado desde fuera (autoselección tras crear cliente)
   useEffect(() => {
     if (value !== undefined) {
@@ -48,11 +52,13 @@ export function GenericSelector({
   }, [value]);
 
   // Cuando llegan nuevos options del backend (tras búsqueda explícita),
-  // mostramos esos resultados directamente
+  // mostramos esos resultados directamente — SIN volver a filtrarlos en
+  // memoria. El backend ya aplicó su propia lógica (nombre, modelo, código,
+  // o IMEI con "#"), y filterOptions no debe reinterpretar ese resultado
+  // (ej: un match por IMEI no tiene por qué aparecer en item.name).
   useEffect(() => {
     if (options.length > 0) {
-      // Si hay texto filtramos en memoria, si no mostramos todos
-      setFiltered(inputText ? filterOptions(options, inputText) : options);
+      setFiltered(options);
     }
   }, [options]);
 
@@ -93,7 +99,8 @@ export function GenericSelector({
       return;
     }
 
-    // Filtrado en memoria sobre lo que ya tenemos (initialOptions + options del backend)
+    // Filtrado en memoria sobre lo que ya tenemos (initialOptions + options
+    // del backend). filterOptions ya sabe distinguir "#imei" de texto normal.
     const base = options.length > 0 ? options : initialOptions;
     setFiltered(filterOptions(base, text));
   }
@@ -235,8 +242,37 @@ export function GenericSelector({
         )}
       </div>
 
+      {/* Dropdown: buscando en backend ────────────────────────────────────── */}
+      {open && searching && (
+        <div
+          className="absolute top-full left-0 right-0 z-50 mt-1 su-surface-md rounded-2xl overflow-hidden"
+          style={{ boxShadow: "var(--su-shadow-lg)" }}
+        >
+          <div className="flex items-center gap-2 px-4 py-3 text-xs" style={{ color: "var(--su-text-muted)" }}>
+            <svg className="w-3.5 h-3.5 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            Buscando{isImeiMode ? " por IMEI" : ""}…
+          </div>
+          {/* Skeleton rows para que la animación se sienta más "viva" */}
+          <div className="flex flex-col gap-1 px-4 pb-3">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-3 rounded animate-pulse"
+                style={{
+                  background: "var(--su-bg-deep)",
+                  width: `${70 - i * 12}%`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Dropdown resultados */}
-      {open && filtered.length > 0 && (
+      {open && !searching && filtered.length > 0 && (
         <div
           className="absolute top-full left-0 right-0 z-50 mt-1 su-surface-md rounded-2xl overflow-hidden max-h-52 overflow-y-auto"
           style={{ boxShadow: "var(--su-shadow-lg)" }}
@@ -246,34 +282,74 @@ export function GenericSelector({
               key={item.id}
               type="button"
               onMouseDown={(e) => { e.preventDefault(); selectOption(item); }}
-              className="w-full text-left px-4 py-2.5 text-sm transition-colors duration-100 hover:bg-[var(--su-bg-deep)]"
+              className="w-full text-left px-4 py-2 text-sm transition-colors duration-100 hover:bg-[var(--su-bg-deep)]"
               style={{
-                color: "var(--foreground)",
                 background: selected?.id === item.id ? "rgba(102,16,242,0.06)" : undefined,
-                fontWeight: selected?.id === item.id ? 600 : undefined,
               }}
             >
-              {inputText ? highlightMatch(item.name, inputText) : item.name}
+              <div className="flex flex-col gap-0.5">
+                <span
+                  style={{
+                    color: "var(--foreground)",
+                    fontWeight: selected?.id === item.id ? 600 : undefined,
+                  }}
+                >
+                  {inputText && !isImeiMode ? highlightMatch(item.name, inputText) : item.name}
+                </span>
+
+                {item.requireImei && item.imeis && item.imeis.length > 0 && (
+                  <span className="text-[10px] leading-tight" style={{ color: "var(--su-text-muted)" }}>
+                    IMEI{item.imeis.length > 1 ? "s" : ""}:{" "}
+                    {item.imeis.map((imei, i) => (
+                      <span key={imei}>
+                        {i > 0 && " / "}#{isImeiMode && imeiQuery ? highlightMatch(imei, imeiQuery) : imei}
+                      </span>
+                    ))}
+                  </span>
+                )}
+
+                {item.requireImei && (!item.imeis || item.imeis.length === 0) && (
+                  <span className="text-[10px] leading-tight text-red-400">
+                    Sin IMEIs disponibles
+                  </span>
+                )}
+              </div>
             </button>
           ))}
         </div>
       )}
 
       {/* Sin resultados */}
-      {open && filtered.length === 0 && inputText && (
+      {open && !searching && filtered.length === 0 && inputText && (
         <div
           className="absolute top-full left-0 right-0 z-50 mt-1 su-surface-md rounded-2xl px-4 py-3 text-xs"
           style={{ color: "var(--su-text-muted)", boxShadow: "var(--su-shadow-md)" }}
         >
-          Sin resultados para &ldquo;{inputText}&rdquo; — presiona Enter o{" "}
-          <button
-            type="button"
-            onClick={triggerBackendSearch}
-            className="underline font-semibold"
-            style={{ color: "var(--brand-indigo)" }}
-          >
-            buscar en el sistema
-          </button>
+          {isImeiMode ? (
+            <>
+              Sin coincidencias locales para el IMEI &ldquo;{imeiQuery}&rdquo; — presiona Enter o{" "}
+              <button
+                type="button"
+                onClick={triggerBackendSearch}
+                className="underline font-semibold"
+                style={{ color: "var(--brand-indigo)" }}
+              >
+                buscar en el sistema
+              </button>
+            </>
+          ) : (
+            <>
+              Sin resultados para &ldquo;{inputText}&rdquo; — presiona Enter o{" "}
+              <button
+                type="button"
+                onClick={triggerBackendSearch}
+                className="underline font-semibold"
+                style={{ color: "var(--brand-indigo)" }}
+              >
+                buscar en el sistema
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

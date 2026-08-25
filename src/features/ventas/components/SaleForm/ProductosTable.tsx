@@ -56,21 +56,47 @@ export function ProductosTable({
                 className="border-t border-[var(--su-border)] hover:bg-[var(--su-bg-deep)] transition-colors"
               >
                 {/* Nombre + badge */}
+{/* Nombre + badge + IMEIs */}
                 <td className="px-3 py-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-[var(--foreground)]">
-                      {productosUI[index]?.nombre ?? "—"}
-                    </span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
-                        productosUI[index]?.esServicio
-                          ? "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300"
-                          : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                      }`}
-                    >
-                      {productosUI[index]?.esServicio ? "Servicio" : "Producto"}
-                    </span>
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-[var(--foreground)]">
+                        {productosUI[index]?.nombre ?? "—"}
+                      </span>
+                      <span
+                        className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                          productosUI[index]?.esServicio
+                            ? "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300"
+                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        }`}
+                      >
+                        {productosUI[index]?.esServicio ? "Servicio" : "Producto"}
+                      </span>
+                    </div>
+{productosUI[index]?.requireImei && productosUI[index]?.imeisDisplay && (
+  <span className="text-[10px] text-[var(--su-text-muted)]">
+    IMEI{productosUI[index]!.imeisDisplay!.length > 1 ? "s" : ""}:{" "}
+    {productosUI[index]!.imeisDisplay!.map((imei) => `#${imei}`).join(" / ")}
+  </span>
+)}
                   </div>
+                </td>
+
+                {/* Cantidad */}
+                <td className="px-2 py-1.5">
+                  <input
+                    type="number"
+                    min={1}
+                    disabled={!!productosUI[index]?.requireImei}
+                    {...register(`productos.${index}.cantidad`, {
+                      valueAsNumber: true,
+                      onChange: onCambio,
+                    })}
+                    onFocus={(e) => e.target.select()}
+                    className="su-inset w-full rounded-md px-1.5 py-1 text-center text-xs
+                               focus:outline-none focus:ring-2 focus:ring-[var(--brand-indigo)]/30
+                               disabled:opacity-60"
+                  />
                 </td>
 
                 {/* Cantidad */}

@@ -131,14 +131,18 @@ export function useIncomesForm() {
 
     function agregarProducto(prod: ProductOption) {
         const existente = form.detalles.find((d) => d.item_id === prod.id);
-        if (existente) {
-            actualizarDetalle(prod.id, { cantidad: existente.cantidad + 1 });
+
+        // Solo sumamos cantidad si NO requiere IMEI
+        if (existente && !prod.require_imei) {
+            actualizarDetalle(existente.row_id, { cantidad: existente.cantidad + 1 });
             toast.success(`Cantidad de "${prod.name}" incrementada`);
             return;
         }
 
+        // Si requiere IMEI (exista ya o no), siempre se crea una fila nueva
         const nueva: DetalleRow = {
             item_id: prod.id,
+            row_id: crypto.randomUUID(),
             nombre_visual: prod.name,
             cantidad: 1,
             costo_unitario: 0,
@@ -146,23 +150,33 @@ export function useIncomesForm() {
             subtotal_linea: 0,
             precio_venta_sugerido: prod.precio_actual ?? 0,
             aplicar_pvp: false,
+            require_imei: !!prod.require_imei,
+            imeis: [],
         };
         patch({ detalles: [...form.detalles, nueva] });
         toast.success(`"${prod.name}" agregado`);
     }
 
-    function actualizarDetalle(itemId: number, cambios: Partial<DetalleRow>) {
+    function actualizarDetalle(rowId: string, cambios: Partial<DetalleRow>) {
         const detalles = form.detalles.map((d) => {
-            if (d.item_id !== itemId) return d;
+            if (d.row_id !== rowId) return d;
+            if (d.require_imei && cambios.cantidad !== undefined && cambios.cantidad > 1) {
+                toast.error("Los ítems con IMEI solo permiten 1 unidad por línea");
+                cambios = { ...cambios, cantidad: 1 };
+            }
             const actualizado = { ...d, ...cambios };
             return { ...actualizado, subtotal_linea: calcularSubtotalFila(actualizado) };
         });
         patch({ detalles });
     }
 
-    function removerDetalle(itemId: number) {
-        const row = form.detalles.find((d) => d.item_id === itemId);
-        patch({ detalles: form.detalles.filter((d) => d.item_id !== itemId) });
+    function actualizarImeis(rowId: string, imeis: string[]) {
+        actualizarDetalle(rowId, { imeis });
+    }
+
+    function removerDetalle(rowId: string) {
+        const row = form.detalles.find((d) => d.row_id === rowId);
+        patch({ detalles: form.detalles.filter((d) => d.row_id !== rowId) });
         if (row) toast.success(`"${row.nombre_visual}" eliminado`);
     }
 
@@ -193,6 +207,9 @@ export function useIncomesForm() {
                 descuento_linea: d.descuento_linea || undefined,
                 precio_venta_sugerido: d.precio_venta_sugerido || undefined,
                 aplicar_pvp: d.aplicar_pvp,
+                imeis: d.require_imei && d.imeis.length > 0
+                    ? d.imeis.map((v) => v.trim()).filter(Boolean)
+                    : undefined,
             })),
         };
 
@@ -235,7 +252,7 @@ export function useIncomesForm() {
         onProveedorBorrado, onProveedorCreado,
         // acciones producto
         buscarProductos, agregarProducto,
-        actualizarDetalle, removerDetalle,
+        actualizarDetalle, actualizarImeis, removerDetalle,
         // submit
         onSubmit,
     };

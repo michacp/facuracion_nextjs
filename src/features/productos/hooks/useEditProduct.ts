@@ -6,11 +6,17 @@ import { toast } from "sonner";
 import { productApi } from "../api/product.api";
 import { Brand, Model, Tax, Percentaje } from "../types/product.types";
 
+export interface LoteImei {
+    imei: string;
+    estado: "DISPONIBLE" | "VENDIDO" | "DEVUELTO";
+}
+
 export interface Lote {
     lote_id: number;
     numero_lote: string;
     cantidad: number | string; // 👈 permite "" mientras se edita
     fecha_ingreso: string;
+    imeis: LoteImei[];
 }
 
 export interface EditForm {
@@ -33,6 +39,10 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
     const [selectedImpuestoId, setSelectedImpuestoId] = useState<number | null>(null);
     const [preselectedModels, setPreselectedModels] = useState<{ id: number; name: string }[]>([]);
 
+    // Si es true (ej. Cellphone), cada lote representa 1 unidad física con su
+    // propio IMEI → el stock del lote no puede ser mayor a 1.
+    const [requireImei, setRequireImei] = useState(false);
+
     const EMPTY: EditForm = {
         id: productId, nombre: "", descripcion: "",
         precio_unitario: "", id_tarifa_impuesto: null,
@@ -46,11 +56,25 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
 
     const [loadingInit, setLoadingInit] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const [addingLote, setAddingLote] = useState(false); // 👈 nuevo
 
     const formInvalid =
         !form.nombre.trim() ||
         !form.id_tarifa_impuesto ||
         form.modelos_ids.length === 0;
+
+    // Mapea el shape de lotes que devuelve el backend (findOne / addLote,
+    // ambos comparten el mismo FindOneItemResponseDto) al tipo Lote local.
+    // Se reutiliza en la carga inicial y después de agregar un lote nuevo.
+    function mapLotesFromResponse(lotesResponse: any[]): Lote[] {
+        return lotesResponse.map((l: any) => ({
+            lote_id: l.lote_id,
+            numero_lote: l.numero_lote,
+            cantidad: l.cantidad,
+            fecha_ingreso: l.fecha_ingreso,
+            imeis: l.imeis ?? [],
+        }));
+    }
 
     // ── Carga inicial ─────────────────────────────────────────────────────────
 
@@ -63,6 +87,8 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
                 setImpuestos(catalogos.taxes);
 
                 const response = await productApi.findOne({ id: productId });
+
+                setRequireImei(!!response.require_imei);
 
                 // Impuesto
                 const tipoImpuesto = catalogos.taxes.find(
@@ -84,19 +110,7 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
                     name: m.models_name,
                 }));
                 setPreselectedModels(presel);
-
-                // ✅ modelos = presel al inicio (catálogo disponible para el chip selector)
-                //    NO causa conflicto porque preselectedModels y availableItems
-                //    se setean en el mismo ciclo → GenericChipsSelector los recibe juntos
                 setModelos(presel);
-
-                // Lotes
-                const lotes: Lote[] = response.lotes.map((l: any) => ({
-                    lote_id: l.lote_id,
-                    numero_lote: l.numero_lote,
-                    cantidad: l.cantidad,
-                    fecha_ingreso: l.fecha_ingreso,
-                }));
 
                 setForm((prev) => ({
                     ...prev,
@@ -105,7 +119,7 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
                     descripcion: response.item_descripcion,
                     precio_unitario: parseFloat(response.item_precio_unitario),
                     modelos_ids: response.modelos.map((m: any) => m.models_id),
-                    lotes,
+                    lotes: mapLotesFromResponse(response.lotes),
                 }));
             } catch (err) {
                 console.error("Error cargando producto:", err);
@@ -142,12 +156,8 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
         try {
             const data = await productApi.findModels({ id: brand.id });
             setModelos(data);
-
-            // ✅ Al cambiar de marca, limpiar preseleccionados — el usuario
-            //    está eligiendo una marca nueva, los chips anteriores ya no aplican
             setPreselectedModels([]);
 
-            // Limpiar también los ids seleccionados que ya no existen en el nuevo catálogo
             const disponiblesIds = new Set(data.map((m) => m.id));
             const validos = form.modelos_ids.filter((id) => disponiblesIds.has(id));
             patchForm({ modelos_ids: validos });
@@ -158,22 +168,60 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
 
     // ── updateLoteCantidad ────────────────────────────────────────────────────
 
-    // ── updateLoteCantidad ────────────────────────────────────────────────────
-
     function updateLoteCantidad(index: number, value: string) {
-        // Guarda el valor crudo tal cual lo escribe el usuario (permite "" mientras edita)
-        const lotes = form.lotes.map((l, i) => (i === index ? { ...l, cantidad: value } : l));
+        // Si el ítem requiere IMEI, cada lote es 1 sola unidad física —
+        // no tiene sentido (ni es correcto) permitir escribir más de 1.
+        let sanitized = value;
+        if (requireImei && value !== "") {
+            const n = Number(value);
+            if (Number.isFinite(n) && n > 1) sanitized = "1";
+        }
+
+        const lotes = form.lotes.map((l, i) => (i === index ? { ...l, cantidad: sanitized } : l));
         patchForm({ lotes });
     }
 
     // Se llama en onBlur: si quedó vacío o inválido, lo deja en 0
+    // (o en 0/1 si el ítem requiere IMEI).
     function normalizeLoteCantidad(index: number) {
         const lotes = form.lotes.map((l, i) => {
             if (i !== index) return l;
-            const n = Number(l.cantidad);
-            return { ...l, cantidad: Number.isFinite(n) && l.cantidad !== "" ? n : 0 };
+            let n = Number(l.cantidad);
+            if (!Number.isFinite(n) || l.cantidad === "") n = 0;
+            if (requireImei && n > 1) n = 1;
+            return { ...l, cantidad: n };
         });
         patchForm({ lotes });
+    }
+
+    // ── agregarLote ───────────────────────────────────────────────────────────
+    // Crea un nuevo lote en el backend (endpoint POST /items/add-lote) y
+    // refresca form.lotes con la respuesta completa y actualizada del ítem.
+    // No cierra el modal — el usuario sigue editando (ej. luego ajusta el
+    // stock del lote recién creado, si no requiere IMEI).
+    async function agregarLote(imeis?: string[]) {
+        if (requireImei) {
+            const limpios = [...new Set((imeis ?? []).map((i) => i.trim()).filter(Boolean))];
+            if (limpios.length < 1 || limpios.length > 2) {
+                toast.error("Ingresa 1 o 2 IMEIs (2 solo si es dual-SIM)");
+                return;
+            }
+        }
+
+        setAddingLote(true);
+        try {
+            const response = await productApi.addLote({
+                item_id: productId,
+                imeis: requireImei ? imeis : undefined,
+            });
+            patchForm({ lotes: mapLotesFromResponse(response.lotes) });
+            toast.success("Lote agregado correctamente");
+        } catch (err: any) {
+            console.error("Error al agregar lote:", err);
+            toast.error(err?.response?.data?.message || "Error al agregar el lote");
+        } finally {
+            setAddingLote(false);
+        }
     }
 
     // ── onSubmit ──────────────────────────────────────────────────────────────
@@ -192,10 +240,11 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
                 precio_unitario: Number(form.precio_unitario),
                 id_tarifa_impuesto: form.id_tarifa_impuesto!,
                 modelos_ids: form.modelos_ids,
-                lotes: form.lotes.map((l) => ({
-                    lote_id: l.lote_id,
-                    cantidad: Number(l.cantidad) || 0,
-                })),
+                lotes: form.lotes.map((l) => {
+                    let cantidad = Number(l.cantidad) || 0;
+                    if (requireImei && cantidad > 1) cantidad = 1;
+                    return { lote_id: l.lote_id, cantidad };
+                }),
             });
             onClose(true);
         } catch (err) {
@@ -212,12 +261,14 @@ export function useEditProduct(productId: number, onClose: (saved: boolean) => v
         marcas, impuestos, modelos, porcentajes,
         selectedImpuestoId,
         preselectedModels,
+        requireImei,
         form, patchForm,
         loadingInit, submitting, formInvalid,
+        addingLote, agregarLote, // 👈 nuevo
         onImpuestoChange,
         buscarModelos,
         updateLoteCantidad,
-        normalizeLoteCantidad, // 👈 nuevo
+        normalizeLoteCantidad,
         onSubmit,
         cerrar,
     };

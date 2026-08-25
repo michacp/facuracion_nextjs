@@ -20,6 +20,8 @@ const EMPTY_FORM: SaveProductoDto = {
     id_tarifa_impuesto: 0,
     modelos_ids: [],
     stock: "",
+    require_imei: false,
+    imeis: [],
 };
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
@@ -54,6 +56,10 @@ export function useProductForm() {
 
     function patchForm(partial: Partial<SaveProductoDto>) {
         setForm((prev) => ({ ...prev, ...partial }));
+    }
+
+    function setImeis(imeis: string[]) {
+        patchForm({ imeis });
     }
 
     function resetForm(overrides: Partial<SaveProductoDto> = {}) {
@@ -166,7 +172,7 @@ export function useProductForm() {
         const nuevoEsServicio = tipo?.name?.toUpperCase() === "SERVICIO";
         patchForm({
             tipo_item: tipoItemId,
-            ...(nuevoEsServicio ? { stock: "" } : {}),
+            ...(nuevoEsServicio ? { stock: "", require_imei: false, imeis: [] } : {}),
         });
     }
 
@@ -182,13 +188,30 @@ export function useProductForm() {
             return null;
         }
 
+        const stockNum = esServicio ? 0 : (Number(form.stock) || 0);
+
+        // Validación de IMEIs antes de enviar
+        if (!esServicio && form.require_imei && stockNum > 0) {
+            const imeisLimpios = (form.imeis ?? []).map((i) => i.trim()).filter(Boolean);
+            const unicos = new Set(imeisLimpios).size === imeisLimpios.length;
+
+            if (imeisLimpios.length !== stockNum || !unicos) {
+                toast.error(`Debes ingresar ${stockNum} IMEIs válidos y únicos para el stock inicial`);
+                return null;
+            }
+        }
+
         setSubmitting(true);
         try {
             const payload: SaveProductoDto = {
                 ...form,
                 precio_unitario: Number(form.precio_unitario) || 0,
-                // Nunca mandamos stock si es servicio, evita ambigüedad aunque el UI lo oculte
-                stock: esServicio ? undefined : (Number(form.stock) || 0),
+                stock: esServicio ? undefined : stockNum,
+                require_imei: esServicio ? false : !!form.require_imei,
+                imeis:
+                    !esServicio && form.require_imei && stockNum > 0
+                        ? (form.imeis ?? []).map((i) => i.trim()).filter(Boolean)
+                        : undefined,
             };
             const result: SaveItemResponseDto = await productApi.save(payload);
             await Promise.all([loadInitialData(), loadLastProducts()]);
@@ -209,7 +232,7 @@ export function useProductForm() {
         // Últimos productos
         ultimosProductos,
         // Form state
-        form, patchForm,
+        form, patchForm, setImeis,
         selectedImpuestoId,
         esServicio,
         // Acciones

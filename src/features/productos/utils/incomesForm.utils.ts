@@ -44,6 +44,24 @@ export function fmtCurrency(n: number): string {
     }).format(n);
 }
 
+// ── NUEVO: helpers de IMEI ──────────────────────────────────────────────
+
+/** true si la fila requiere IMEI y ya tiene la cantidad exacta de IMEIs válidos y únicos */
+/** true si la fila requiere IMEI y ya cumple: cantidad=1 y 1-2 IMEIs válidos/únicos */
+export function imeisCompletos(row: DetalleRow): boolean {
+    if (!row.require_imei) return true;
+    if (row.cantidad !== 1) return false; // ítems con IMEI solo permiten 1 unidad por línea
+
+    const validos = row.imeis.map((v) => v.trim()).filter(Boolean);
+    const unicos = new Set(validos).size === validos.length;
+    return unicos && validos.length >= 1 && validos.length <= 2;
+}
+
+/** true si existe alguna fila con IMEIs incompletos (bloquea el submit) */
+export function hayImeisPendientes(detalles: DetalleRow[]): boolean {
+    return detalles.some((d) => !imeisCompletos(d));
+}
+
 export const EMPTY_FORM: IncomesFormState = {
     proveedor_id: null,
     tipo_doc_id: null,

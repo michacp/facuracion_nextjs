@@ -24,6 +24,7 @@ import type {
     ProductosListSelect,
 } from "../types/saleForm.types";
 import type { Item } from "@/components/common/GenericSelector/types";
+import { imeiSaleApi } from "../api/imei.api";
 
 function todayString(): string {
     const d = new Date();
@@ -55,7 +56,12 @@ const defaultValues: FacturaFormValues = {
 // no hay forma de que un id positivo (producto) choque con uno negativo (servicio).
 function toItem(p: ProductosListSelect): Item {
     const realId = Number(p.id);
-    return { id: p.es_servicio ? -realId : realId, name: p.name };
+    return {
+        id: p.es_servicio ? -realId : realId,
+        name: p.name,
+        imeis: p.imeis,
+        requireImei: p.require_imei,
+    };
 }
 
 export function useSaleForm() {
@@ -239,28 +245,47 @@ export function useSaleForm() {
 
     // ── Agregar producto ───────────────────────────────────────────────────────
     const agregarProducto = useCallback(
-        (item: Item | null) => {
+        async (item: Item | null) => {
             if (!item) return;
 
-            // item.id ya viene con el namespace de toItem (negativo si es servicio),
-            // así que se usa directo como clave del mapa — sin Number(item.id) plano,
-            // que perdería la distinción producto/servicio.
             const d = productosMap.get(item.id as number);
             if (!d) {
                 toast.error("Producto no encontrado");
                 return;
             }
 
-            // ── Duplicado: solo subir cantidad ────────────────────────────────────
+            // ── Duplicado ────────────────────────────────────────────────────────
             const indexExistente = fields.findIndex((f) => f.productoId === d.id);
-
             if (indexExistente !== -1) {
+                if (d.require_imei) {
+                    toast.info("Este celular ya está en la venta — no se puede vender 2 veces el mismo lote");
+                    return;
+                }
                 const cantidadActual = form.getValues(`productos.${indexExistente}.cantidad`);
                 form.setValue(`productos.${indexExistente}.cantidad`, cantidadActual + 1);
                 setTimeout(() => recalcular(), 0);
-                return; // ← salimos, no hacemos append ni push a productosUI
+                return;
             }
-            // ─────────────────────────────────────────────────────────────────────
+
+            // ── Si requiere IMEI, traer los IMEIs disponibles del lote ────────────
+            let imeiIds: number[] | undefined;
+            let imeisDisplay: string[] | undefined;
+
+            if (!d.es_servicio && d.require_imei) {
+                try {
+                    const res = await imeiSaleApi.findDisponiblesByLote(Number(d.id));
+                    if (res.imeis.length === 0) {
+                        toast.error("Este lote no tiene IMEIs disponibles para vender");
+                        return;
+                    }
+                    imeiIds = res.imeis.map((i) => i.imei_id);
+                    imeisDisplay = res.imeis.map((i) => i.imei);
+                } catch (err) {
+                    console.error("Error obteniendo IMEIs del lote:", err);
+                    toast.error("Error al obtener los IMEIs de este producto");
+                    return;
+                }
+            }
 
             append({
                 productoId: d.id,
@@ -269,11 +294,17 @@ export function useSaleForm() {
                 precioUnitario: d.price,
                 descuento: 0,
                 codigoImpuesto: String(d.tax_percentage_id),
+                imei_ids: imeiIds,
             });
 
             setProductosUI((prev) => [
                 ...prev,
-                { nombre: d.name, esServicio: d.es_servicio },
+                {
+                    nombre: d.name,
+                    esServicio: d.es_servicio,
+                    requireImei: d.require_imei,
+                    imeisDisplay,
+                },
             ]);
 
             setProductosBusqueda([]);
