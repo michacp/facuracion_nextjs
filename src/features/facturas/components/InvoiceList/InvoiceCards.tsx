@@ -65,7 +65,7 @@ function Pagination({
             onClick={() => onPageChange(currentPage - 1, itemsPerPage)}
             disabled={currentPage === 0}
             className="su-icon-btn rounded-xl px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-          >←</button>
+          >→</button>
           <span
             className="su-inset rounded-xl px-3 py-1.5 text-xs flex items-center"
             style={{ color: "var(--su-text-muted)" }}
@@ -84,18 +84,15 @@ function Pagination({
 }
 
 // ── Columnas ──────────────────────────────────────────────────────────────────
-// Todas en px fijos para que header y cada fila alineen exactamente.
-// La columna de acciones reserva 120px fijos: suficiente para 3–4 botones
-// sin desplazar nada cuando aparece/desaparece el botón de reenvío.
 
 const COLS = {
-  venta:    "200px",   // N° venta + clave (2 líneas, ancho generoso)
-  cliente:  "1fr",     // nombre + RUC/CI — ocupa el espacio restante
-  emision:  "88px",    // fecha + hora auth
-  estado:   "148px",   // 2 chips (AUTORIZADO + PRODUCCIÓN)
-  total:    "80px",    // monto alineado a la derecha
-  xml:      "52px",    // ícono + texto "XML"
-  acciones: "120px",   // zona de botones — FIJA para no desalinear
+  venta:    "200px",
+  cliente:  "1fr",
+  emision:  "88px",
+  estado:   "148px",
+  total:    "80px",
+  xml:      "52px",
+  acciones: "120px",
 } as const;
 
 const COL_TEMPLATE = Object.values(COLS).join(" ");
@@ -135,18 +132,20 @@ function RowHeader() {
 
 function FacturaRow({
   factura,
-  syncingId, printingId, printingA4Id, retryingId,
-  onSync, onPrintTicket, onPrintA4, onRetry,
+  syncingId, printingId, printingA4Id, retryingId, emailingId,
+  onSync, onPrintTicket, onPrintA4, onRetry, onSendEmail,
 }: {
   factura: FacturaItem;
   syncingId: number | null;
   printingId: number | null;
   printingA4Id: number | null;
   retryingId: number | null;
+  emailingId: number | null;
   onSync: (f: FacturaItem) => void;
   onPrintTicket: (f: FacturaItem) => void;
   onPrintA4: (f: FacturaItem) => void;
   onRetry: (f: FacturaItem) => void;
+  onSendEmail: (f: FacturaItem) => void;
 }) {
   const estadoStyle   = getEstadoStyles(factura.estado);
   const ambienteStyle = getAmbienteStyles(factura.ambiente);
@@ -158,7 +157,7 @@ function FacturaRow({
       style={{ gridTemplateColumns: COL_TEMPLATE, borderColor: "var(--su-divider)" }}
     >
 
-      {/* ── N° venta — clave acceso completa en segunda línea ── */}
+      {/* ── N° venta ── */}
       <div className="min-w-0 overflow-hidden">
         <p
           className="text-xs font-semibold truncate leading-snug"
@@ -201,7 +200,7 @@ function FacturaRow({
         </p>
       </div>
 
-      {/* ── Chips — flex nowrap para que nunca rompa columna ── */}
+      {/* ── Chips ── */}
       <div className="flex flex-wrap gap-1 overflow-hidden">
         <Chip {...estadoStyle} label={factura.estado} />
         <Chip {...ambienteStyle} label={ambienteStyle.label} />
@@ -238,8 +237,7 @@ function FacturaRow({
         )}
       </div>
 
-      {/* ── Acciones: contenedor de ancho fijo para que los botones
-           nunca empujen las columnas vecinas ── */}
+      {/* ── Acciones ── */}
       <div className="flex items-center justify-end" style={{ width: COLS.acciones }}>
         <InvoiceRowActions
           factura={factura}
@@ -247,10 +245,12 @@ function FacturaRow({
           printingId={printingId}
           printingA4Id={printingA4Id}
           retryingId={retryingId}
+          emailingId={emailingId}
           onSync={onSync}
           onPrintTicket={onPrintTicket}
           onPrintA4={onPrintA4}
           onRetry={onRetry}
+          onSendEmail={onSendEmail}
         />
       </div>
     </div>
@@ -270,10 +270,12 @@ interface Props {
   printingId: number | null;
   printingA4Id: number | null;
   retryingId: number | null;
+  emailingId: number | null;
   onSync: (f: FacturaItem) => void;
   onPrintTicket: (f: FacturaItem) => void;
   onPrintA4: (f: FacturaItem) => void;
   onRetry: (f: FacturaItem) => void;
+  onSendEmail: (f: FacturaItem) => void;
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
@@ -281,8 +283,8 @@ interface Props {
 export function InvoiceCards({
   facturas, isLoading,
   currentPage, totalItems, itemsPerPage, onPageChange,
-  syncingId, printingId, printingA4Id, retryingId,
-  onSync, onPrintTicket, onPrintA4, onRetry,
+  syncingId, printingId, printingA4Id, retryingId, emailingId,
+  onSync, onPrintTicket, onPrintA4, onRetry, onSendEmail,
 }: Props) {
 
   if (isLoading) {
@@ -331,10 +333,12 @@ export function InvoiceCards({
           printingId={printingId}
           printingA4Id={printingA4Id}
           retryingId={retryingId}
+          emailingId={emailingId}
           onSync={onSync}
           onPrintTicket={onPrintTicket}
           onPrintA4={onPrintA4}
           onRetry={onRetry}
+          onSendEmail={onSendEmail}
         />
       ))}
 
