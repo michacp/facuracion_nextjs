@@ -7,8 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, Boxes, Shield, X,
   ChevronDown, Plus, List, Package, Users, Truck,
-  Receipt, PenLine,
-  BarChart2
+  Receipt, PenLine, BarChart2
 } from "lucide-react";
 import { JwtPayload } from "@/features/auth/types/auth.types";
 // ── Importaciones de Firebase ───────────────────────────────────────────────
@@ -395,35 +394,39 @@ export function Sidebar({ isOpen, isCollapsed, onClose, user }: SidebarProps) {
           <NavLink href="/proveedores" icon={Truck} label="Proveedores"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
 
+          {/* Botón Ingresos (Movido aquí como ítem independiente) */}
+          <NavLink href="/productos/ingresoslista" icon={Package} label="Ingresos"
+            isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
+
           <NavAccordion
             icon={Boxes} label="Productos"
             isCollapsed={isCollapsed} matchPrefix="/productos" pathname={pathname}
             flyoutChildren={<>
               <SubLink href="/productos/nuevo" icon={Plus} label="Nuevo producto" pathname={pathname} onClick={onClose} />
-              <SubLink href="/productos" icon={List} label="Lista" pathname={pathname} onClick={onClose} />
-              <SubLink href="/productos/ingresos" icon={Package} label="Ingresos" pathname={pathname} onClick={onClose} />
+              <SubLink href="/productos/lista" icon={List} label="Lista" pathname={pathname} onClick={onClose} />
             </>}
           >
             <SubLinkIndented href="/productos/nuevo" icon={Plus} label="Nuevo producto" pathname={pathname} onClick={onClose} />
             <SubLinkIndented href="/productos/lista" icon={List} label="Lista" pathname={pathname} onClick={onClose} />
-            <SubLinkIndented href="/productos/ingresoslista" icon={Package} label="Ingresos" pathname={pathname} onClick={onClose} />
           </NavAccordion>
 
           <NavLink href="/firma" icon={PenLine} label="Firma"
             isCollapsed={isCollapsed} pathname={pathname} onClick={onClose} />
-<NavAccordion
-  icon={BarChart2} label="Reportes"
-  isCollapsed={isCollapsed} matchPrefix="/reportes" pathname={pathname}
-  flyoutChildren={<>
-    <SubLink href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
-    <SubLink href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
-    <SubLink href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
-  </>}
->
-  <SubLinkIndented href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
-  <SubLinkIndented href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
-  <SubLinkIndented href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
-</NavAccordion>
+
+          <NavAccordion
+            icon={BarChart2} label="Reportes"
+            isCollapsed={isCollapsed} matchPrefix="/reportes" pathname={pathname}
+            flyoutChildren={<>
+              <SubLink href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
+              <SubLink href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
+              <SubLink href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
+            </>}
+          >
+            <SubLinkIndented href="/reportes/ivamensual" icon={Receipt} label="IVA mensual" pathname={pathname} onClick={onClose} />
+            <SubLinkIndented href="/reportes/cuentasporpagar" icon={Truck} label="Cuentas por pagar" pathname={pathname} onClick={onClose} />
+            <SubLinkIndented href="/reportes/inventaariovalorado" icon={Boxes} label="Inventario valorado" pathname={pathname} onClick={onClose} />
+          </NavAccordion>
+
           {/* Owner */}
           {user?.rol === "OWNER" && (
             <>
