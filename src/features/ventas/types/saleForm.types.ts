@@ -11,7 +11,9 @@ export interface ProductosListSelect {
     id: number | string;
     name: string;
     price: number;
+    stock?: number;
     es_servicio: boolean;
+    numero_lote?: string | null;
     tax_percentage_id: number | string;
     require_imei?: boolean;   // ← NUEVO
     imeis?: string[];
@@ -74,14 +76,20 @@ export interface FacturaFormValues {
     total: number;
 }
 
+
+export interface ProductoInfoLine {
+    label: string;
+    value: string;
+}
+
 // UI-only state
 export interface ProductoUI {
     nombre: string;
     esServicio: boolean;
-    requireImei?: boolean;    // ← NUEVO
-    imeisDisplay?: string[];  // ← NUEVO — solo para mostrar en la tabla, no editable
+    requireImei?: boolean;
+    imeisDisplay?: string[];
+    infoLines?: ProductoInfoLine[]; // ← NUEVO — genérico, ej: Lote, Cantidad, etc.
 }
-
 export interface NewDataVentas {
     clientes: ClientesListSelect[];
     // FIX: el backend ya no devuelve productos en getNewData — ahora se

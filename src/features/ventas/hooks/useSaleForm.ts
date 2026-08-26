@@ -22,6 +22,7 @@ import type {
     SaveSaleResult,
     NewDataVentas,
     ProductosListSelect,
+    ProductoInfoLine,
 } from "../types/saleForm.types";
 import type { Item } from "@/components/common/GenericSelector/types";
 import { imeiSaleApi } from "../api/imei.api";
@@ -61,6 +62,12 @@ function toItem(p: ProductosListSelect): Item {
         name: p.name,
         imeis: p.imeis,
         requireImei: p.require_imei,
+        infoLines: p.es_servicio
+            ? undefined
+            : [
+                { label: "Lote", value: p.numero_lote ?? String(realId) },
+                { label: "Cantidad", value: String(p.stock ?? p.imeis?.length ?? "—") },
+            ],
     };
 }
 
@@ -270,6 +277,7 @@ export function useSaleForm() {
             // ── Si requiere IMEI, traer los IMEIs disponibles del lote ────────────
             let imeiIds: number[] | undefined;
             let imeisDisplay: string[] | undefined;
+            let infoLines: ProductoInfoLine[] | undefined;
 
             if (!d.es_servicio && d.require_imei) {
                 try {
@@ -280,12 +288,27 @@ export function useSaleForm() {
                     }
                     imeiIds = res.imeis.map((i) => i.imei_id);
                     imeisDisplay = res.imeis.map((i) => i.imei);
+
+                    infoLines = [
+                        { label: "Lote", value: d.numero_lote ?? String(d.id) },
+                        { label: "Cantidad", value: String(imeisDisplay.length) },
+                    ];
                 } catch (err) {
                     console.error("Error obteniendo IMEIs del lote:", err);
                     toast.error("Error al obtener los IMEIs de este producto");
                     return;
                 }
+            } else if (!d.es_servicio) {
+                // Producto sin IMEI: mismo par Lote/Cantidad, pero la cantidad
+                // viene del stock del lote, no de una lista de IMEIs.
+                infoLines = [
+                    { label: "Lote", value: d.numero_lote ?? String(d.id) },
+                    { label: "Cantidad", value: String(d.stock ?? "—") },
+                ];
             }
+
+
+
 
             append({
                 productoId: d.id,
@@ -304,6 +327,7 @@ export function useSaleForm() {
                     esServicio: d.es_servicio,
                     requireImei: d.require_imei,
                     imeisDisplay,
+                    infoLines,
                 },
             ]);
 

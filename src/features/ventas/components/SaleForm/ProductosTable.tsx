@@ -72,6 +72,12 @@ export function ProductosTable({
                         {productosUI[index]?.esServicio ? "Servicio" : "Producto"}
                       </span>
                     </div>
+                        {/* Subtextos genéricos (Lote, Cantidad, etc.) */}
+    {productosUI[index]?.infoLines && productosUI[index]!.infoLines!.length > 0 && (
+      <span className="text-[10px] text-[var(--su-text-muted)]">
+        {productosUI[index]!.infoLines!.map((l) => `${l.label}: ${l.value}`).join(" · ")}
+      </span>
+    )}
                     {productosUI[index]?.requireImei && productosUI[index]?.imeisDisplay && (
                       <span className="text-[10px] text-[var(--su-text-muted)]">
                         IMEI{productosUI[index]!.imeisDisplay!.length > 1 ? "s" : ""}:{" "}

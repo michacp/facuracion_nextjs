@@ -287,33 +287,40 @@ export function GenericSelector({
                 background: selected?.id === item.id ? "rgba(102,16,242,0.06)" : undefined,
               }}
             >
-              <div className="flex flex-col gap-0.5">
-                <span
-                  style={{
-                    color: "var(--foreground)",
-                    fontWeight: selected?.id === item.id ? 600 : undefined,
-                  }}
-                >
-                  {inputText && !isImeiMode ? highlightMatch(item.name, inputText) : item.name}
-                </span>
+<div className="flex flex-col gap-0.5">
+  <span
+    style={{
+      color: "var(--foreground)",
+      fontWeight: selected?.id === item.id ? 600 : undefined,
+    }}
+  >
+    {inputText && !isImeiMode ? highlightMatch(item.name, inputText) : item.name}
+  </span>
 
-                {item.requireImei && item.imeis && item.imeis.length > 0 && (
-                  <span className="text-[10px] leading-tight" style={{ color: "var(--su-text-muted)" }}>
-                    IMEI{item.imeis.length > 1 ? "s" : ""}:{" "}
-                    {item.imeis.map((imei, i) => (
-                      <span key={imei}>
-                        {i > 0 && " / "}#{isImeiMode && imeiQuery ? highlightMatch(imei, imeiQuery) : imei}
-                      </span>
-                    ))}
-                  </span>
-                )}
+  {/* Subtextos genéricos (Lote, Cantidad, etc.) — una línea por cada uno, sin concatenar */}
+  {item.infoLines?.map((line) => (
+    <span key={line.label} className="text-[10px] leading-tight" style={{ color: "var(--su-text-muted)" }}>
+      {line.label}: {line.value}
+    </span>
+  ))}
 
-                {item.requireImei && (!item.imeis || item.imeis.length === 0) && (
-                  <span className="text-[10px] leading-tight text-red-400">
-                    Sin IMEIs disponibles
-                  </span>
-                )}
-              </div>
+  {item.requireImei && item.imeis && item.imeis.length > 0 && (
+    <span className="text-[10px] leading-tight" style={{ color: "var(--su-text-muted)" }}>
+      IMEI{item.imeis.length > 1 ? "s" : ""}:{" "}
+      {item.imeis.map((imei, i) => (
+        <span key={imei}>
+          {i > 0 && " / "}#{isImeiMode && imeiQuery ? highlightMatch(imei, imeiQuery) : imei}
+        </span>
+      ))}
+    </span>
+  )}
+
+  {item.requireImei && (!item.imeis || item.imeis.length === 0) && (
+    <span className="text-[10px] leading-tight text-red-400">
+      Sin IMEIs disponibles
+    </span>
+  )}
+</div>
             </button>
           ))}
         </div>

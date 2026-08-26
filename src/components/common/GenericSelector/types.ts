@@ -1,6 +1,9 @@
 // src/components/common/GenericSelector/types.ts
 import type React from "react";
-
+export interface ProductoInfoLine {
+    label: string;
+    value: string;
+}
 export interface Item {
     id: number;
     name: string;
@@ -8,6 +11,9 @@ export interface Item {
     imeis?: string[];
     /** Indica si este ítem requiere selección/visualización de IMEI */
     requireImei?: boolean;
+
+    infoLines?: ProductoInfoLine[];
+    [key: string]: any;
 }
 
 export interface GenericSelectorProps {
