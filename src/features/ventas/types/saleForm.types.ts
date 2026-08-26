@@ -89,6 +89,7 @@ export interface ProductoUI {
     requireImei?: boolean;
     imeisDisplay?: string[];
     infoLines?: ProductoInfoLine[]; // ← NUEVO — genérico, ej: Lote, Cantidad, etc.
+    stockDisponible?: number;
 }
 export interface NewDataVentas {
     clientes: ClientesListSelect[];

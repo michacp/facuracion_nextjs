@@ -4,7 +4,7 @@
 import { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Trash2, ShoppingCart } from "lucide-react";
 import type { FacturaFormValues, ImpuestoSales, ProductoUI } from "../../types/saleForm.types";
-
+import { toast } from "sonner";
 interface Props {
   form: UseFormReturn<FacturaFormValues>;
   fields: FieldArrayWithId<FacturaFormValues, "productos", "id">[];
@@ -88,21 +88,35 @@ export function ProductosTable({
                 </td>
 
                 {/* Cantidad */}
-                <td className="px-2 py-1.5">
-                  <input
-                    type="number"
-                    min={1}
-                    disabled={!!productosUI[index]?.requireImei}
-                    {...register(`productos.${index}.cantidad`, {
-                      valueAsNumber: true,
-                      onChange: onCambio,
-                    })}
-                    onFocus={(e) => e.target.select()}
-                    className="su-inset w-full rounded-md px-1.5 py-1 text-center text-xs
-                               focus:outline-none focus:ring-2 focus:ring-[var(--brand-indigo)]/30
-                               disabled:opacity-60"
-                  />
-                </td>
+{/* Cantidad */}
+<td className="px-2 py-1.5">
+  <input
+    type="number"
+    min={1}
+    max={productosUI[index]?.stockDisponible}
+    disabled={!!productosUI[index]?.requireImei}
+    {...register(`productos.${index}.cantidad`, {
+      valueAsNumber: true,
+    })}
+    onChange={(e) => {
+      const stock = productosUI[index]?.stockDisponible;
+      let val = e.target.valueAsNumber;
+
+      if (!Number.isNaN(val) && stock != null && val > stock) {
+        val = stock;
+        e.target.value = String(val);
+        toast.info(`Solo hay ${stock} unidades disponibles en este lote`);
+      }
+
+      form.setValue(`productos.${index}.cantidad`, val, { shouldValidate: true });
+      onCambio();
+    }}
+    onFocus={(e) => e.target.select()}
+    className="su-inset w-full rounded-md px-1.5 py-1 text-center text-xs
+               focus:outline-none focus:ring-2 focus:ring-[var(--brand-indigo)]/30
+               disabled:opacity-60"
+  />
+</td>
 
  
 {/* Precio */}

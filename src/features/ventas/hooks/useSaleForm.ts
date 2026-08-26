@@ -328,6 +328,7 @@ export function useSaleForm() {
                     requireImei: d.require_imei,
                     imeisDisplay,
                     infoLines,
+                    stockDisponible: d.es_servicio ? undefined : (d.stock ?? undefined),
                 },
             ]);
 
