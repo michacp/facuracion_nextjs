@@ -73,7 +73,8 @@ export function KpiGrid({ kpis, onRefetch }: Props) {
           Actualizar
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label="Hoy"         kpi={kpis.dia}    />
         <KpiCard label="Esta semana" kpi={kpis.semana} />
         <KpiCard label="Este mes"    kpi={kpis.mes}    />
         <KpiCard label="Este año"    kpi={kpis.anio}   />

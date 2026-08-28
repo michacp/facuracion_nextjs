@@ -8,7 +8,7 @@ import { AlertasPanel }      from "./AlertasPanel";
 import { StockBajoTable }    from "./StockBajoTable";
 import { TopProductosTable } from "./TopProductosTable";
 import { TopClientesTable }  from "./TopClientesTable";
-
+import { UltimasVentasPanel } from "./UltimasVentasPanel";
 // ─── Estados de carga / error ────────────────────────────────────────────────
 
 function DashboardLoading() {
@@ -58,7 +58,8 @@ export function Dashboard() {
           <AlertasPanel alertas={data.alertas} />
         </div>
       </section>
-
+      {/* ── Últimas ventas ────────────────────────────────────────────────── */}
+      <UltimasVentasPanel ventas={data.ultimasVentas} />
       {/* ── Stock bajo ────────────────────────────────────────────────────── */}
       <StockBajoTable  />
 

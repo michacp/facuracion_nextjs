@@ -1,4 +1,5 @@
 // src/features/reportes/types/reportes.types.ts
+import type { SaleList5last } from "@/features/ventas/types/saleForm.types";
 
 // ── Dashboard / KPIs ──────────────────────────────────────────────────────────
 
@@ -11,6 +12,7 @@ export interface KpiPeriodo {
 }
 
 export interface KpisResponse {
+    dia: KpiPeriodo;
     semana: KpiPeriodo;
     mes: KpiPeriodo;
     anio: KpiPeriodo;
@@ -114,6 +116,7 @@ export interface DashboardData {
     alertas: AlertasResponse;
     topProductos: TopProductosResponse;
     topClientes: TopClientesResponse;
+    ultimasVentas: SaleList5last[];
 }
 
 // ── IVA Mensual ───────────────────────────────────────────────────────────────
